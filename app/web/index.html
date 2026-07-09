@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shiploader Motion</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/vendor/three.module.js",
+          "three/addons/": "/vendor/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="viewer" aria-label="3D shiploader view">
+        <div id="scene-root" class="scene-root"></div>
+        <div id="view-status" class="view-status">Loading</div>
+      </section>
+
+      <aside class="control-panel" aria-label="Simulation controls">
+        <header class="panel-header">
+          <h1>Shiploader Motion</h1>
+          <p id="sim-clock">t=0.0s</p>
+        </header>
+
+        <div class="command-row">
+          <button id="run-button" type="button">Run</button>
+          <button id="pause-button" type="button">Pause</button>
+          <button id="reset-button" type="button">Reset</button>
+        </div>
+
+        <section class="axis-panel" id="axis-controls"></section>
+
+        <section class="status-panel">
+          <h2>Status</h2>
+          <dl id="state-readout"></dl>
+        </section>
+
+        <details class="scene-editor">
+          <summary>Scene JSON</summary>
+          <textarea id="scene-json" spellcheck="false"></textarea>
+          <button id="apply-scene-button" type="button">Apply Scene</button>
+        </details>
+      </aside>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

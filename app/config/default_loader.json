@@ -1,0 +1,57 @@
+{
+  "loader_id": "SL01",
+  "geometry": {
+    "rail_origin": [0.0, 0.0, 0.0],
+    "rail_direction": [1.0, 0.0, 0.0],
+    "base_height_m": 8.0,
+    "boom_base_offset": [0.0, 0.0, 1.5],
+    "boom_base_length_m": 25.0,
+    "boom_extension_min_m": 0.0,
+    "boom_extension_max_m": 15.0,
+    "chute_length_m": 2.6,
+    "discharge_offset": [0.0, 0.0, -0.35],
+    "visual_scale": 1.0
+  },
+  "axes": {
+    "travel": {
+      "type": "linear",
+      "current": 0.0,
+      "velocity": 1.0,
+      "min_value": -100.0,
+      "max_value": 100.0,
+      "tolerance": 0.001
+    },
+    "slew": {
+      "type": "rotary",
+      "current": 0.0,
+      "velocity": 5.0,
+      "min_value": -180.0,
+      "max_value": 180.0,
+      "tolerance": 0.001
+    },
+    "boom_luff": {
+      "type": "rotary",
+      "current": 10.0,
+      "velocity": 2.0,
+      "min_value": -10.0,
+      "max_value": 45.0,
+      "tolerance": 0.001
+    },
+    "boom_extension": {
+      "type": "linear",
+      "current": 0.0,
+      "velocity": 0.5,
+      "min_value": 0.0,
+      "max_value": 15.0,
+      "tolerance": 0.001
+    },
+    "chute_rotate": {
+      "type": "rotary",
+      "current": 0.0,
+      "velocity": 10.0,
+      "min_value": -180.0,
+      "max_value": 180.0,
+      "tolerance": 0.001
+    }
+  }
+}

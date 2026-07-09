@@ -1,0 +1,29 @@
+[project]
+name = "shiploader-sim"
+version = "0.1.0"
+description = "Single ship loader multi-degree-of-freedom motion simulation MVP"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pydantic",
+    "pydantic-settings",
+    "fastapi",
+    "uvicorn",
+    "pytest",
+    "pyvista",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+science = [
+    "scipy",
+]
+dev = [
+    "ruff",
+    "mypy",
+    "pytest-cov",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

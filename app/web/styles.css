@@ -1,0 +1,268 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #eef2f5;
+  color: #18212f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow: hidden;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  height: 100vh;
+  background: #dfe6ec;
+}
+
+.viewer {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background: #cfd8de;
+}
+
+.scene-root {
+  position: absolute;
+  inset: 0;
+}
+
+.scene-root canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.view-status {
+  position: absolute;
+  left: 18px;
+  bottom: 16px;
+  max-width: min(520px, calc(100% - 36px));
+  padding: 8px 10px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #111827;
+  font-size: 13px;
+  line-height: 1.45;
+  pointer-events: none;
+}
+
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  border-left: 1px solid #c4cdd6;
+  background: #f8fafc;
+  padding: 18px;
+  gap: 16px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panel-header h1 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 720;
+}
+
+.panel-header p {
+  margin: 2px 0 0;
+  color: #475569;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.command-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+button {
+  min-height: 38px;
+  border: 1px solid #aeb9c6;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: #f97316;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.primary {
+  border-color: #ea580c;
+  background: #f97316;
+  color: #ffffff;
+}
+
+.axis-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.axis-control {
+  display: grid;
+  grid-template-columns: minmax(74px, 0.85fr) minmax(70px, 1fr) minmax(70px, 1fr) 64px;
+  gap: 8px;
+  align-items: end;
+  padding: 10px;
+  border: 1px solid #d4dbe4;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.axis-control h2 {
+  grid-row: span 2;
+  margin: 0;
+  align-self: center;
+  font-size: 14px;
+  line-height: 1.2;
+  color: #1f2937;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+}
+
+.field label {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.field input {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  border: 1px solid #bec8d3;
+  border-radius: 5px;
+  padding: 0 8px;
+  background: #f8fafc;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+}
+
+.axis-current {
+  grid-column: 2 / 4;
+  color: #475569;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-panel,
+.scene-editor {
+  border: 1px solid #d4dbe4;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.status-panel h2 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+#state-readout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+
+#state-readout dt {
+  color: #64748b;
+}
+
+#state-readout dd {
+  margin: 0;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+}
+
+.scene-editor summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.scene-editor textarea {
+  display: block;
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+  margin: 10px 0;
+  border: 1px solid #bec8d3;
+  border-radius: 5px;
+  padding: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@media (max-width: 840px) {
+  body {
+    overflow: auto;
+  }
+
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(420px, 58vh) auto;
+    min-height: 100vh;
+    height: auto;
+  }
+
+  .control-panel {
+    border-left: 0;
+    border-top: 1px solid #c4cdd6;
+  }
+}
+
+@media (max-width: 520px) {
+  .axis-control {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .axis-control h2 {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .axis-control button {
+    grid-column: 1 / -1;
+  }
+
+  .axis-current {
+    grid-column: 1 / -1;
+  }
+}

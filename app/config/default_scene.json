@@ -1,0 +1,87 @@
+{
+  "vessels": [
+    {
+      "id": "Vessel-L",
+      "position": [10.0, -18.0, 1.6],
+      "length_m": 58.0,
+      "width_m": 8.0,
+      "height_m": 3.2,
+      "side": "left",
+      "holds": [
+        {
+          "id": "L1",
+          "center_offset_m": -18.0,
+          "length_m": 8.0,
+          "width_m": 5.8,
+          "fill_level": 0.9
+        },
+        {
+          "id": "L2",
+          "center_offset_m": -7.0,
+          "length_m": 8.0,
+          "width_m": 5.8,
+          "fill_level": 0.85
+        },
+        {
+          "id": "L3",
+          "center_offset_m": 4.0,
+          "length_m": 8.0,
+          "width_m": 5.8,
+          "fill_level": 0.75
+        },
+        {
+          "id": "L4",
+          "center_offset_m": 15.0,
+          "length_m": 8.0,
+          "width_m": 5.8,
+          "fill_level": 0.35
+        }
+      ]
+    },
+    {
+      "id": "Vessel-R",
+      "position": [12.0, 24.0, 1.6],
+      "length_m": 64.0,
+      "width_m": 8.5,
+      "height_m": 3.2,
+      "side": "right",
+      "holds": [
+        {
+          "id": "R1",
+          "center_offset_m": -22.0,
+          "length_m": 8.2,
+          "width_m": 6.0,
+          "fill_level": 0.15
+        },
+        {
+          "id": "R2",
+          "center_offset_m": -11.0,
+          "length_m": 8.2,
+          "width_m": 6.0,
+          "fill_level": 0.55
+        },
+        {
+          "id": "R3",
+          "center_offset_m": 0.0,
+          "length_m": 8.2,
+          "width_m": 6.0,
+          "fill_level": 0.85
+        },
+        {
+          "id": "R4",
+          "center_offset_m": 11.0,
+          "length_m": 8.2,
+          "width_m": 6.0,
+          "fill_level": 0.75
+        },
+        {
+          "id": "R5",
+          "center_offset_m": 22.0,
+          "length_m": 8.2,
+          "width_m": 6.0,
+          "fill_level": 0.3
+        }
+      ]
+    }
+  ]
+}

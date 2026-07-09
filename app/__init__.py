@@ -1,0 +1,2 @@
+"""Shiploader motion simulation package."""
+
