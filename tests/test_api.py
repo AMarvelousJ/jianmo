@@ -57,6 +57,7 @@ def test_scene_endpoint_returns_default_scene():
     assert "vessels" in body
     assert len(body["vessels"]) >= 1
     assert len(body["vessels"][0]["holds"]) >= 1
+    assert body["vessels"][0]["cover_type"] in {"horizontal", "vertical", "none"}
 
 
 def test_scene_endpoint_updates_variable_holds():
@@ -99,11 +100,66 @@ def test_scene_endpoint_updates_variable_holds():
     }
     update_response = client.put("/api/scene", json=scene)
     assert update_response.status_code == 200
-    assert update_response.json() == scene
+    updated_scene = update_response.json()
+    assert updated_scene["vessels"][0]["id"] == scene["vessels"][0]["id"]
+    assert updated_scene["vessels"][0]["cover_type"] == "none"
 
     get_response = client.get("/api/scene")
     assert get_response.status_code == 200
     assert len(get_response.json()["vessels"][0]["holds"]) == 3
+
+    restore_response = client.put("/api/scene", json=original_scene)
+    assert restore_response.status_code == 200
+
+
+def test_scene_endpoint_accepts_hatch_covers():
+    client = TestClient(app)
+    original_scene = client.get("/api/scene").json()
+    scene = {
+        "vessels": [
+            {
+                "id": "Cover-Test",
+                "position": [0.0, 12.0, 1.5],
+                "length_m": 34.0,
+                "width_m": 7.2,
+                "height_m": 3.0,
+                "side": "right",
+                "cover_type": "vertical",
+                "holds": [
+                    {
+                        "id": "C1",
+                        "center_offset_m": -5.0,
+                        "length_m": 7.0,
+                        "width_m": 5.2,
+                        "fill_level": 0.2,
+                        "cover": {
+                            "length_m": 2.3,
+                            "width_m": 5.0,
+                            "thickness_m": 0.24,
+                        },
+                    },
+                    {
+                        "id": "C2",
+                        "center_offset_m": 6.0,
+                        "length_m": 8.5,
+                        "width_m": 5.6,
+                        "fill_level": 0.6,
+                        "cover": {
+                            "length_m": 2.6,
+                            "width_m": 5.4,
+                            "thickness_m": 0.28,
+                        },
+                    },
+                ],
+            }
+        ]
+    }
+    response = client.put("/api/scene", json=scene)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["vessels"][0]["cover_type"] == "vertical"
+    assert body["vessels"][0]["holds"][0]["cover"]["length_m"] == 2.3
+    assert body["vessels"][0]["holds"][1]["cover"]["thickness_m"] == 0.28
 
     restore_response = client.put("/api/scene", json=original_scene)
     assert restore_response.status_code == 200

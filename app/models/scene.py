@@ -7,6 +7,20 @@ from pydantic import BaseModel, Field, field_validator
 from app.models.pose import Vec3
 
 VesselSide = Literal["left", "right", "center"]
+CoverType = Literal["none", "horizontal", "vertical"]
+
+
+class HatchCoverConfig(BaseModel):
+    length_m: float | None = None
+    width_m: float | None = None
+    thickness_m: float = 0.2
+
+    @field_validator("length_m", "width_m", "thickness_m")
+    @classmethod
+    def validate_positive(cls, value: float | None) -> float | None:
+        if value is not None and value <= 0:
+            raise ValueError("cover dimensions must be positive")
+        return value
 
 
 class HoldConfig(BaseModel):
@@ -15,6 +29,7 @@ class HoldConfig(BaseModel):
     length_m: float
     width_m: float
     fill_level: float = 0.0
+    cover: HatchCoverConfig | None = None
 
     @field_validator("length_m", "width_m")
     @classmethod
@@ -38,6 +53,7 @@ class VesselConfig(BaseModel):
     width_m: float
     height_m: float
     side: VesselSide = "center"
+    cover_type: CoverType = "none"
     holds: list[HoldConfig] = Field(default_factory=list)
 
     @field_validator("length_m", "width_m", "height_m")
@@ -50,4 +66,3 @@ class VesselConfig(BaseModel):
 
 class SceneConfig(BaseModel):
     vessels: list[VesselConfig] = Field(default_factory=list)
-

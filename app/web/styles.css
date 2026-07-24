@@ -178,12 +178,89 @@ button.primary {
   font-variant-numeric: tabular-nums;
 }
 
+.cover-panel,
 .status-panel,
 .scene-editor {
   border: 1px solid #d4dbe4;
   border-radius: 6px;
   background: #ffffff;
   padding: 12px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.section-header button {
+  min-height: 32px;
+  padding: 0 10px;
+}
+
+.cover-vessel {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cover-vessel:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.cover-vessel-title {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px;
+  align-items: center;
+  gap: 8px;
+}
+
+.cover-vessel-title h3 {
+  margin: 0;
+  font-size: 13px;
+  color: #1f2937;
+}
+
+.cover-vessel-title select {
+  width: 100%;
+  height: 32px;
+  border: 1px solid #bec8d3;
+  border-radius: 5px;
+  background: #f8fafc;
+  color: #111827;
+}
+
+.cover-hold {
+  display: grid;
+  grid-template-columns: 54px repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  align-items: end;
+}
+
+.cover-hold strong {
+  align-self: center;
+  color: #334155;
+  font-size: 12px;
+}
+
+.cover-hold input {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  border: 1px solid #bec8d3;
+  border-radius: 5px;
+  padding: 0 6px;
+  background: #f8fafc;
+  font-size: 12px;
 }
 
 .status-panel h2 {
@@ -251,6 +328,10 @@ button.primary {
 @media (max-width: 520px) {
   .axis-control {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .cover-hold {
+    grid-template-columns: 1fr;
   }
 
   .axis-control h2 {

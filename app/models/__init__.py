@@ -1,7 +1,7 @@
 from app.models.axis import AxisConfig, AxisState
 from app.models.geometry import ShipLoaderGeometry
 from app.models.pose import Pose, Vec3
-from app.models.scene import HoldConfig, SceneConfig, VesselConfig
+from app.models.scene import HatchCoverConfig, HoldConfig, SceneConfig, VesselConfig
 from app.models.snapshot import (
     BeltStatus,
     KinematicsResult,
@@ -15,6 +15,7 @@ __all__ = [
     "AxisState",
     "BeltStatus",
     "HoldConfig",
+    "HatchCoverConfig",
     "KinematicsResult",
     "Pose",
     "SceneConfig",

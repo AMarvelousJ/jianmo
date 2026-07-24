@@ -25,10 +25,12 @@ const simClock = document.querySelector("#sim-clock");
 const axisControls = document.querySelector("#axis-controls");
 const stateReadout = document.querySelector("#state-readout");
 const sceneJson = document.querySelector("#scene-json");
+const coverControls = document.querySelector("#cover-controls");
 const runButton = document.querySelector("#run-button");
 const pauseButton = document.querySelector("#pause-button");
 const resetButton = document.querySelector("#reset-button");
 const applySceneButton = document.querySelector("#apply-scene-button");
+const applyCoversButton = document.querySelector("#apply-covers-button");
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xd6dee5);
@@ -70,6 +72,9 @@ const materials = {
   shipTrim: new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.5 }),
   holdRim: new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.62 }),
   coal: new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.95 }),
+  coverHorizontal: new THREE.MeshStandardMaterial({ color: 0xc8d2dc, roughness: 0.5, metalness: 0.08 }),
+  coverVertical: new THREE.MeshStandardMaterial({ color: 0xe6edf3, roughness: 0.48, metalness: 0.08 }),
+  coverEdge: new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.5, metalness: 0.05 }),
   trajectory: new THREE.LineBasicMaterial({ color: 0x16a34a }),
 };
 
@@ -319,6 +324,7 @@ function renderVessels(sceneData) {
 
     for (const hold of vessel.holds ?? []) {
       addHold(group, hold, height);
+      addHatchCover(group, hold, vessel.cover_type, height);
     }
   }
 }
@@ -342,6 +348,58 @@ function addHold(group, hold, vesselHeight) {
     new THREE.Vector3(length * 0.84, fillHeight, width * 0.76),
     materials.coal,
   );
+}
+
+function addHatchCover(group, hold, coverType, vesselHeight) {
+  if (!coverType || coverType === "none") {
+    return;
+  }
+
+  const cover = hold.cover ?? {};
+  const thickness = cover.thickness_m ?? 0.2;
+  const top = vesselHeight * 0.5 + 0.42;
+  const x = hold.center_offset_m;
+
+  if (coverType === "horizontal") {
+    const length = cover.length_m ?? hold.length_m * 0.92;
+    const width = cover.width_m ?? hold.width_m * 0.36;
+    for (const side of [-1, 1]) {
+      const z = side * (hold.width_m * 0.5 + width * 0.5 + 0.42);
+      addBox(
+        group,
+        new THREE.Vector3(x, top + thickness * 0.5, z),
+        new THREE.Vector3(length, thickness, width),
+        materials.coverHorizontal,
+      );
+      addBox(
+        group,
+        new THREE.Vector3(x, top + thickness + 0.03, z),
+        new THREE.Vector3(length * 0.96, 0.05, 0.08),
+        materials.coverEdge,
+      );
+    }
+    return;
+  }
+
+  if (coverType === "vertical") {
+    const height = cover.length_m ?? Math.min(2.4, hold.length_m * 0.35);
+    const width = cover.width_m ?? hold.width_m * 0.9;
+    for (const end of [-1, 1]) {
+      const xEnd = x + end * (hold.length_m * 0.5 + thickness * 0.5 + 0.36);
+      addBox(
+        group,
+        new THREE.Vector3(xEnd, top + height * 0.5, 0),
+        new THREE.Vector3(thickness, height, width),
+        materials.coverVertical,
+      );
+      addBox(
+        group,
+        new THREE.Vector3(xEnd + end * thickness * 0.55, top + height * 0.5, 0),
+        new THREE.Vector3(0.06, height * 0.9, width * 0.92),
+        materials.coverEdge,
+      );
+    }
+  }
 }
 
 function rebuildLoader(snapshot) {
@@ -514,6 +572,98 @@ function createAxisControls(snapshot) {
   });
 }
 
+function renderCoverControls(sceneData) {
+  coverControls.innerHTML = "";
+  for (const [vesselIndex, vessel] of (sceneData.vessels ?? []).entries()) {
+    const vesselSection = document.createElement("article");
+    vesselSection.className = "cover-vessel";
+    vesselSection.innerHTML = `
+      <div class="cover-vessel-title">
+        <h3>${vessel.id}</h3>
+        <select data-cover-type="${vesselIndex}" aria-label="${vessel.id} cover type">
+          <option value="none">No cover</option>
+          <option value="horizontal">Horizontal</option>
+          <option value="vertical">Vertical</option>
+        </select>
+      </div>
+    `;
+    const typeSelect = vesselSection.querySelector(`[data-cover-type="${vesselIndex}"]`);
+    typeSelect.value = vessel.cover_type ?? "none";
+
+    for (const [holdIndex, hold] of (vessel.holds ?? []).entries()) {
+      const cover = hold.cover ?? {};
+      const row = document.createElement("div");
+      row.className = "cover-hold";
+      row.innerHTML = `
+        <strong>${hold.id}</strong>
+        <input data-cover-length="${vesselIndex}:${holdIndex}" type="number" min="0" step="0.1" placeholder="Len or height" title="Horizontal: each side cover length. Vertical: each end cover height." value="${cover.length_m ?? ""}">
+        <input data-cover-width="${vesselIndex}:${holdIndex}" type="number" min="0" step="0.1" placeholder="Pair width" title="One value is used for both side/end covers." value="${cover.width_m ?? ""}">
+        <input data-cover-thickness="${vesselIndex}:${holdIndex}" type="number" min="0" step="0.01" placeholder="Thick" title="One value is used for both side/end covers." value="${cover.thickness_m ?? ""}">
+      `;
+      vesselSection.appendChild(row);
+    }
+
+    coverControls.appendChild(vesselSection);
+  }
+}
+
+function readOptionalNumber(input, label) {
+  const raw = input.value.trim();
+  if (raw === "") {
+    return null;
+  }
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`${label} must be a positive number`);
+  }
+  return value;
+}
+
+async function applyCoverControls() {
+  const nextScene = JSON.parse(JSON.stringify(window.currentScene));
+  for (const [vesselIndex, vessel] of (nextScene.vessels ?? []).entries()) {
+    const typeSelect = document.querySelector(`[data-cover-type="${vesselIndex}"]`);
+    vessel.cover_type = typeSelect?.value ?? "none";
+    for (const [holdIndex, hold] of (vessel.holds ?? []).entries()) {
+      const key = `${vesselIndex}:${holdIndex}`;
+      const length = readOptionalNumber(document.querySelector(`[data-cover-length="${key}"]`), `${hold.id} cover length`);
+      const width = readOptionalNumber(document.querySelector(`[data-cover-width="${key}"]`), `${hold.id} cover width`);
+      const thickness = readOptionalNumber(
+        document.querySelector(`[data-cover-thickness="${key}"]`),
+        `${hold.id} cover thickness`,
+      );
+      const cover = {};
+      if (length !== null) {
+        cover.length_m = length;
+      }
+      if (width !== null) {
+        cover.width_m = width;
+      }
+      if (thickness !== null) {
+        cover.thickness_m = thickness;
+      }
+      if (Object.keys(cover).length > 0) {
+        hold.cover = cover;
+      } else {
+        delete hold.cover;
+      }
+    }
+  }
+
+  const sceneData = await requestJson(API.scene, {
+    method: "PUT",
+    body: JSON.stringify(nextScene),
+  });
+  window.currentScene = sceneData;
+  sceneJson.value = JSON.stringify(sceneData, null, 2);
+  renderVessels(sceneData);
+  renderCoverControls(sceneData);
+  if (latestSnapshot) {
+    renderSnapshot(latestSnapshot);
+  }
+  setStatus("Hatch cover settings applied");
+}
+
 async function requestJson(url, options = {}) {
   const response = await fetch(url, {
     headers: { "Content-Type": "application/json", ...(options.headers ?? {}) },
@@ -556,6 +706,7 @@ async function loadScene() {
   window.currentScene = sceneData;
   sceneJson.value = JSON.stringify(sceneData, null, 2);
   renderVessels(sceneData);
+  renderCoverControls(sceneData);
   return sceneData;
 }
 
@@ -568,6 +719,7 @@ async function applySceneJson() {
   window.currentScene = sceneData;
   sceneJson.value = JSON.stringify(sceneData, null, 2);
   renderVessels(sceneData);
+  renderCoverControls(sceneData);
   if (latestSnapshot) {
     renderSnapshot(latestSnapshot);
   }
@@ -648,6 +800,7 @@ async function init() {
   pauseButton.addEventListener("click", () => pauseSimulation().catch((error) => setStatus(error.message)));
   resetButton.addEventListener("click", () => resetSimulation().catch((error) => setStatus(error.message)));
   applySceneButton.addEventListener("click", () => applySceneJson().catch((error) => setStatus(error.message)));
+  applyCoversButton.addEventListener("click", () => applyCoverControls().catch((error) => setStatus(error.message)));
 
   await loadScene();
   const snapshot = await requestJson(API.state);
