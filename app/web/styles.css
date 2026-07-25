@@ -61,6 +61,26 @@ textarea {
   pointer-events: none;
 }
 
+.viewer-toolbar {
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 8px;
+  background: rgba(248, 250, 252, 0.88);
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.viewer-toolbar button {
+  min-height: 32px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .control-panel {
   display: flex;
   flex-direction: column;
@@ -85,6 +105,18 @@ textarea {
   font-size: 22px;
   line-height: 1.15;
   font-weight: 720;
+}
+
+.model-badge {
+  display: inline-block;
+  margin-top: 7px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: #e8edf1;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
 }
 
 .panel-header p {
@@ -128,6 +160,13 @@ button.primary {
   gap: 10px;
 }
 
+.axis-help {
+  margin: 0;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .axis-control {
   display: grid;
   grid-template-columns: minmax(74px, 0.85fr) minmax(70px, 1fr) minmax(70px, 1fr) 64px;
@@ -140,7 +179,7 @@ button.primary {
 }
 
 .axis-control h2 {
-  grid-row: span 2;
+  grid-row: span 3;
   margin: 0;
   align-self: center;
   font-size: 14px;
@@ -172,10 +211,25 @@ button.primary {
 }
 
 .axis-current {
-  grid-column: 2 / 4;
+  grid-column: 2 / -1;
   color: #475569;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+}
+
+.axis-limits {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+
+.axis-limits span {
+  white-space: nowrap;
 }
 
 .cover-panel,
@@ -343,6 +397,7 @@ button.primary {
     grid-column: 1 / -1;
   }
 
+  .axis-limits,
   .axis-current {
     grid-column: 1 / -1;
   }

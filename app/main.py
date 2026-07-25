@@ -5,13 +5,14 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routers import axis, scene, simulation, state
+from app.api.routers import axis, loader, scene, simulation, state
 
 app = FastAPI(title="Shiploader Motion Simulation API", version="0.1.0")
 app.include_router(simulation.router)
 app.include_router(axis.router)
 app.include_router(state.router)
 app.include_router(scene.router)
+app.include_router(loader.router)
 
 
 @app.get("/health")

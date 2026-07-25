@@ -13,6 +13,7 @@ class AxisConfig(BaseModel):
     current: float = 0.0
     target: float | None = None
     velocity: float = 1.0
+    max_velocity: float | None = None
     enabled: bool = True
     running: bool = False
     min_value: float | None = None
@@ -28,6 +29,13 @@ class AxisConfig(BaseModel):
             raise ValueError("velocity cannot be negative")
         return value
 
+    @field_validator("max_velocity")
+    @classmethod
+    def validate_max_velocity(cls, value: float | None) -> float | None:
+        if value is not None and value < 0:
+            raise ValueError("max_velocity cannot be negative")
+        return value
+
     @field_validator("tolerance")
     @classmethod
     def validate_tolerance(cls, value: float) -> float:
@@ -39,6 +47,10 @@ class AxisConfig(BaseModel):
     def validate_limits(self) -> "AxisConfig":
         if self.target is None:
             self.target = self.current
+        if self.max_velocity is None:
+            self.max_velocity = self.velocity
+        if self.velocity > self.max_velocity:
+            raise ValueError("velocity cannot exceed max_velocity")
         if self.min_value is not None and self.max_value is not None:
             if self.max_value < self.min_value:
                 raise ValueError("max_value cannot be less than min_value")
@@ -57,6 +69,7 @@ class AxisState(BaseModel):
     current: float
     target: float
     velocity: float
+    max_velocity: float | None = None
     enabled: bool
     running: bool
     at_target: bool
@@ -66,4 +79,3 @@ class AxisState(BaseModel):
     positive_direction: int = 1
     last_update_time: float = 0.0
     constraint_result: dict[str, Any] = Field(default_factory=dict)
-

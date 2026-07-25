@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Shiploader Motion</title>
+    <title>黄骅 8000 t/h 装船机 · SL15</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="/styles.css">
     <script type="importmap">
@@ -17,46 +17,55 @@
   </head>
   <body>
     <main class="app-shell">
-      <section class="viewer" aria-label="3D shiploader view">
+      <section class="viewer" aria-label="SL15 装船机三维视图">
         <div id="scene-root" class="scene-root"></div>
+        <div class="viewer-toolbar" id="view-buttons" aria-label="固定视角">
+          <button type="button" data-view="perspective" aria-pressed="true">透视</button>
+          <button type="button" data-view="front" aria-pressed="false">主视</button>
+          <button type="button" data-view="side" aria-pressed="false">侧视</button>
+          <button type="button" data-view="top" aria-pressed="false">俯视</button>
+        </div>
         <div id="view-status" class="view-status">Loading</div>
       </section>
 
-      <aside class="control-panel" aria-label="Simulation controls">
+      <aside class="control-panel" aria-label="仿真控制">
         <header class="panel-header">
-          <h1>Shiploader Motion</h1>
+          <div>
+            <h1>黄骅装船机</h1>
+            <span id="model-badge" class="model-badge">SL15</span>
+          </div>
           <p id="sim-clock">t=0.0s</p>
         </header>
 
         <div class="command-row">
-          <button id="run-button" type="button">Run</button>
-          <button id="pause-button" type="button">Pause</button>
-          <button id="reset-button" type="button">Reset</button>
+          <button id="run-button" type="button">运行</button>
+          <button id="pause-button" type="button">暂停</button>
+          <button id="reset-button" type="button">复位</button>
         </div>
 
         <section class="axis-panel" id="axis-controls"></section>
 
         <section class="cover-panel">
           <header class="section-header">
-            <h2>Hatch Covers</h2>
-            <button id="apply-covers-button" type="button">Apply Covers</button>
+            <h2>舱盖</h2>
+            <button id="apply-covers-button" type="button">应用</button>
           </header>
           <div id="cover-controls"></div>
         </section>
 
         <section class="status-panel">
-          <h2>Status</h2>
+          <h2>运行状态</h2>
           <dl id="state-readout"></dl>
         </section>
 
         <details class="scene-editor">
-          <summary>Scene JSON</summary>
+          <summary>场景 JSON</summary>
           <textarea id="scene-json" spellcheck="false"></textarea>
-          <button id="apply-scene-button" type="button">Apply Scene</button>
+          <button id="apply-scene-button" type="button">应用场景</button>
         </details>
       </aside>
     </main>
 
-    <script type="module" src="/app.js?v=20260709-cover-pairs"></script>
+    <script type="module" src="/app.js?v=20260725-sl15-r4-limits"></script>
   </body>
 </html>

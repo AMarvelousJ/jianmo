@@ -72,6 +72,28 @@ def test_chute_rotate_only_changes_direction():
     assert rotated.chute_direction.to_list() != pytest.approx(start.chute_direction.to_list())
 
 
+def test_chute_quarter_turn_boundary_poses_keep_attachment_points_fixed():
+    baseline = solve(chute_rotate=0.0)
+    directions = []
+
+    # The configured axis range is [-180, 180], so 270 degrees is represented
+    # by its equivalent -90 degree command.
+    for angle in (0.0, 90.0, 180.0, -90.0):
+        result = solve(chute_rotate=angle)
+        assert result.chute_top_position.to_list() == pytest.approx(
+            baseline.chute_top_position.to_list()
+        )
+        assert result.chute_bottom_position.to_list() == pytest.approx(
+            baseline.chute_bottom_position.to_list()
+        )
+        assert result.discharge_point.to_list() == pytest.approx(
+            baseline.discharge_point.to_list()
+        )
+        directions.append(tuple(round(value, 8) for value in result.chute_direction.to_list()))
+
+    assert len(set(directions)) == 4
+
+
 def test_discharge_point_exists():
     result = solve()
     assert len(result.discharge_point.to_list()) == 3

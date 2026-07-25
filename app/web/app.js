@@ -1,7 +1,10 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { worldToThree } from "./shiploader/coordinate-frame.js";
+import { ProceduralShiploaderRig } from "./shiploader/procedural-rig.js?v=sl15-procedural-r4";
 
 const API = {
+  loaderConfig: "/api/loader/config",
   state: "/api/state",
   scene: "/api/scene",
   step: "/api/simulation/step",
@@ -12,11 +15,11 @@ const API = {
 };
 
 const AXES = [
-  { id: "travel", label: "Travel", unit: "m", step: "0.1" },
-  { id: "slew", label: "Slew", unit: "deg", step: "1" },
-  { id: "boom_luff", label: "Luff", unit: "deg", step: "1" },
-  { id: "boom_extension", label: "Extend", unit: "m", step: "0.1" },
-  { id: "chute_rotate", label: "Chute", unit: "deg", step: "1" },
+  { id: "travel", label: "大车行走", unit: "m", step: "0.1" },
+  { id: "slew", label: "臂架回转", unit: "deg", step: "0.1" },
+  { id: "boom_luff", label: "臂架俯仰", unit: "deg", step: "0.1" },
+  { id: "boom_extension", label: "臂架伸缩", unit: "m", step: "0.1" },
+  { id: "chute_rotate", label: "溜筒回转", unit: "deg", step: "1" },
 ];
 
 const sceneRoot = document.querySelector("#scene-root");
@@ -31,13 +34,17 @@ const pauseButton = document.querySelector("#pause-button");
 const resetButton = document.querySelector("#reset-button");
 const applySceneButton = document.querySelector("#apply-scene-button");
 const applyCoversButton = document.querySelector("#apply-covers-button");
+const modelBadge = document.querySelector("#model-badge");
+const viewButtons = document.querySelector("#view-buttons");
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xd6dee5);
 scene.fog = new THREE.Fog(0xd6dee5, 95, 170);
 
-const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 1000);
-camera.position.set(58, 44, 68);
+const perspectiveCamera = new THREE.PerspectiveCamera(42, 1, 0.1, 1000);
+perspectiveCamera.position.set(58, 44, 68);
+const orthographicCamera = new THREE.OrthographicCamera(-50, 50, 35, -35, 0.1, 1000);
+let activeCamera = perspectiveCamera;
 
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
@@ -48,7 +55,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 sceneRoot.appendChild(renderer.domElement);
 
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(activeCamera, renderer.domElement);
 controls.target.set(10, 7, 4);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
@@ -60,14 +67,7 @@ const materials = {
   ground: new THREE.MeshStandardMaterial({ color: 0xbfc9d1, roughness: 0.88 }),
   rail: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.55 }),
   railGuard: new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.5 }),
-  loader: new THREE.MeshStandardMaterial({ color: 0xe34225, roughness: 0.45, metalness: 0.12 }),
-  loaderDark: new THREE.MeshStandardMaterial({ color: 0x7c1d12, roughness: 0.55, metalness: 0.1 }),
-  boom: new THREE.MeshStandardMaterial({ color: 0xf15a24, roughness: 0.42, metalness: 0.15 }),
-  boomDark: new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.6, metalness: 0.12 }),
   belt: new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.7 }),
-  chute: new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.45, metalness: 0.1 }),
-  chuteSleeve: new THREE.MeshStandardMaterial({ color: 0x93c5fd, roughness: 0.42, metalness: 0.08 }),
-  discharge: new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.35 }),
   shipHull: new THREE.MeshStandardMaterial({ color: 0x121826, roughness: 0.64 }),
   shipTrim: new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.5 }),
   holdRim: new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.62 }),
@@ -84,20 +84,16 @@ const loaderGroup = new THREE.Group();
 scene.add(staticGroup, vesselsGroup, loaderGroup);
 
 let trajectoryLine = null;
-let trajectoryPoints = [];
+let trajectoryGeometry = null;
+let trajectoryAttribute = null;
+let trajectoryCount = 0;
+const trajectoryCapacity = 280;
 let latestSnapshot = null;
+let loaderConfig = null;
+let shiploaderRig = null;
 let running = true;
 let stepping = false;
 let tickTimer = null;
-
-function worldToThree(value) {
-  const [x, y, z] = value;
-  return new THREE.Vector3(x, z, y);
-}
-
-function threeToWorld(value) {
-  return [value.x, value.z, value.y];
-}
 
 function setStatus(message) {
   viewStatus.textContent = message;
@@ -108,6 +104,13 @@ function format(value, digits = 2) {
     return "-";
   }
   return value.toFixed(digits);
+}
+
+function formatLimit(value) {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) {
+    return "不限";
+  }
+  return String(Number(value));
 }
 
 function clearGroup(group) {
@@ -152,110 +155,6 @@ function addWorldBox(parent, centerWorld, sizeWorld, material) {
   );
 }
 
-function addVerticalCylinder(parent, centerWorld, radius, height, material, segments = 32) {
-  const geometry = new THREE.CylinderGeometry(radius, radius, height, segments);
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.copy(worldToThree(centerWorld));
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  parent.add(mesh);
-  return mesh;
-}
-
-function addCylinderBetween(parent, start, end, radius, material, segments = 16) {
-  const startPoint = Array.isArray(start) ? worldToThree(start) : start.clone();
-  const endPoint = Array.isArray(end) ? worldToThree(end) : end.clone();
-  const delta = endPoint.clone().sub(startPoint);
-  const length = delta.length();
-  if (length < 0.001) {
-    return null;
-  }
-
-  const geometry = new THREE.CylinderGeometry(radius, radius, length, segments);
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.copy(startPoint).add(endPoint).multiplyScalar(0.5);
-  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), delta.normalize());
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  parent.add(mesh);
-  return mesh;
-}
-
-function addSphere(parent, centerWorld, radius, material) {
-  const geometry = new THREE.SphereGeometry(radius, 24, 16);
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.copy(worldToThree(centerWorld));
-  mesh.castShadow = true;
-  parent.add(mesh);
-  return mesh;
-}
-
-function lerpWorld(a, b, t) {
-  return [
-    a[0] + (b[0] - a[0]) * t,
-    a[1] + (b[1] - a[1]) * t,
-    a[2] + (b[2] - a[2]) * t,
-  ];
-}
-
-function addWorldOffset(point, offset) {
-  return [point[0] + offset[0], point[1] + offset[1], point[2] + offset[2]];
-}
-
-function normalizedWorldDirection(start, end) {
-  const dx = end[0] - start[0];
-  const dy = end[1] - start[1];
-  const dz = end[2] - start[2];
-  const length = Math.hypot(dx, dy, dz) || 1;
-  return [dx / length, dy / length, dz / length];
-}
-
-function horizontalSideVector(direction) {
-  const side = [-direction[1], direction[0], 0];
-  const length = Math.hypot(side[0], side[1]) || 1;
-  return [side[0] / length, side[1] / length, 0];
-}
-
-function scaleWorld(vector, scalar) {
-  return [vector[0] * scalar, vector[1] * scalar, vector[2] * scalar];
-}
-
-function addTruss(parent, start, end, width, height, material) {
-  const direction = normalizedWorldDirection(start, end);
-  const side = horizontalSideVector(direction);
-  const sideOffset = scaleWorld(side, width * 0.5);
-  const topOffset = [0, 0, height * 0.5];
-  const bottomOffset = [0, 0, -height * 0.35];
-
-  const topLeftStart = addWorldOffset(addWorldOffset(start, sideOffset), topOffset);
-  const topLeftEnd = addWorldOffset(addWorldOffset(end, sideOffset), topOffset);
-  const topRightStart = addWorldOffset(addWorldOffset(start, scaleWorld(sideOffset, -1)), topOffset);
-  const topRightEnd = addWorldOffset(addWorldOffset(end, scaleWorld(sideOffset, -1)), topOffset);
-  const bottomStart = addWorldOffset(start, bottomOffset);
-  const bottomEnd = addWorldOffset(end, bottomOffset);
-
-  addCylinderBetween(parent, topLeftStart, topLeftEnd, 0.055, material, 10);
-  addCylinderBetween(parent, topRightStart, topRightEnd, 0.055, material, 10);
-  addCylinderBetween(parent, bottomStart, bottomEnd, 0.07, material, 10);
-
-  const divisions = 8;
-  for (let index = 0; index < divisions; index += 1) {
-    const a = index / divisions;
-    const b = (index + 1) / divisions;
-    const top = addWorldOffset(
-      addWorldOffset(lerpWorld(start, end, index % 2 === 0 ? a : b), sideOffset),
-      topOffset,
-    );
-    const bottom = addWorldOffset(lerpWorld(start, end, index % 2 === 0 ? b : a), bottomOffset);
-    const topOpposite = addWorldOffset(
-      addWorldOffset(lerpWorld(start, end, index % 2 === 0 ? a : b), scaleWorld(sideOffset, -1)),
-      topOffset,
-    );
-    addCylinderBetween(parent, top, bottom, 0.035, material, 8);
-    addCylinderBetween(parent, topOpposite, bottom, 0.035, material, 8);
-  }
-}
-
 function setupLights() {
   const hemisphere = new THREE.HemisphereLight(0xffffff, 0x6b7280, 2.8);
   scene.add(hemisphere);
@@ -270,23 +169,29 @@ function setupLights() {
   scene.add(fill);
 }
 
-function setupStaticScene() {
+function setupStaticScene(config) {
   clearGroup(staticGroup);
 
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(128, 74), materials.ground);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(150, 86), materials.ground);
   ground.rotation.x = -Math.PI / 2;
-  ground.position.set(12, -0.03, 4);
+  ground.position.set(10, -0.03, 3);
   ground.receiveShadow = true;
   staticGroup.add(ground);
 
-  for (const y of [-1.25, 1.25]) {
-    addWorldBox(staticGroup, [10, y, 0.13], { x: 94, y: 0.24, z: 0.26 }, materials.rail);
+  const halfGauge = config.engineering.rail_gauge_m * 0.5;
+  for (const y of [-halfGauge, halfGauge]) {
+    addWorldBox(staticGroup, [10, y, 0.18], { x: 118, y: 0.32, z: 0.36 }, materials.rail);
   }
-  for (const y of [-2.1, 2.1]) {
-    addWorldBox(staticGroup, [10, y, 0.08], { x: 96, y: 0.18, z: 0.16 }, materials.railGuard);
+  for (const y of [-halfGauge - 1.15, halfGauge + 1.15]) {
+    addWorldBox(staticGroup, [10, y, 0.1], { x: 120, y: 0.16, z: 0.2 }, materials.railGuard);
   }
-  for (let x = -36; x <= 56; x += 4) {
-    addWorldBox(staticGroup, [x, 0, 0.04], { x: 0.24, y: 4.8, z: 0.08 }, materials.rail);
+  for (let x = -48; x <= 68; x += 2.5) {
+    addWorldBox(
+      staticGroup,
+      [x, 0, 0.07],
+      { x: 0.28, y: config.engineering.rail_gauge_m + 2.8, z: 0.14 },
+      materials.rail,
+    );
   }
 }
 
@@ -402,102 +307,45 @@ function addHatchCover(group, hold, coverType, vesselHeight) {
   }
 }
 
-function rebuildLoader(snapshot) {
-  clearGroup(loaderGroup);
-  const keyPoints = snapshot.key_points;
-  const base = keyPoints.base_position;
-  const root = keyPoints.boom_root_position;
-  const fixedTip = keyPoints.fixed_boom_tip_position;
-  const tip = keyPoints.boom_tip_position;
-  const chuteBottom = keyPoints.chute_bottom_position;
-  const discharge = keyPoints.discharge_point;
-  const boomDirection = keyPoints.boom_direction;
-  const chuteDirection = keyPoints.chute_direction;
-
-  addWorldBox(loaderGroup, [base[0], base[1], 0.35], { x: 5.8, y: 3.8, z: 0.7 }, materials.loaderDark);
-  addWorldBox(loaderGroup, [base[0], base[1], 0.9], { x: 4.8, y: 2.7, z: 0.45 }, materials.loader);
-
-  const legCorners = [
-    [-1.55, -1.15],
-    [-1.55, 1.15],
-    [1.55, -1.15],
-    [1.55, 1.15],
-  ];
-  for (const [xOffset, yOffset] of legCorners) {
-    addCylinderBetween(
-      loaderGroup,
-      [base[0] + xOffset, base[1] + yOffset, 0.75],
-      [base[0] + xOffset * 0.42, base[1] + yOffset * 0.42, base[2] + 0.1],
-      0.08,
-      materials.loader,
-      10,
-    );
-  }
-
-  addWorldBox(loaderGroup, [base[0], base[1], base[2] + 0.08], { x: 3.8, y: 2.8, z: 0.26 }, materials.loader);
-  addVerticalCylinder(loaderGroup, [base[0], base[1], base[2] + 0.22], 1.25, 0.42, materials.loader, 36);
-  addCylinderBetween(loaderGroup, base, root, 0.12, materials.loader, 12);
-
-  const back = scaleWorld([boomDirection[0], boomDirection[1], 0], -1);
-  addWorldBox(
-    loaderGroup,
-    [base[0] + back[0] * 2.0, base[1] + back[1] * 2.0, base[2] + 0.7],
-    { x: 1.8, y: 1.5, z: 1.0 },
-    materials.loaderDark,
+function setupTrajectory() {
+  trajectoryGeometry = new THREE.BufferGeometry();
+  trajectoryAttribute = new THREE.BufferAttribute(
+    new Float32Array(trajectoryCapacity * 3),
+    3,
   );
-
-  addCylinderBetween(loaderGroup, root, fixedTip, 0.18, materials.boom, 14);
-  addCylinderBetween(loaderGroup, fixedTip, tip, 0.14, materials.boomDark, 14);
-  addCylinderBetween(loaderGroup, addWorldOffset(root, [0, 0, 0.22]), addWorldOffset(tip, [0, 0, 0.22]), 0.055, materials.belt, 10);
-  addTruss(loaderGroup, root, fixedTip, 0.82, 0.9, materials.boom);
-  addTruss(loaderGroup, fixedTip, tip, 0.58, 0.62, materials.boom);
-
-  addSphere(loaderGroup, tip, 0.28, materials.chuteSleeve);
-  addCylinderBetween(loaderGroup, tip, chuteBottom, 0.2, materials.chute, 18);
-  addCylinderBetween(
-    loaderGroup,
-    addWorldOffset(tip, [0, 0, -0.35]),
-    addWorldOffset(chuteBottom, [0, 0, 0.25]),
-    0.28,
-    materials.chuteSleeve,
-    18,
-  );
-  const chuteArrowEnd = [
-    discharge[0] + chuteDirection[0] * 1.25,
-    discharge[1] + chuteDirection[1] * 1.25,
-    discharge[2] - 0.1,
-  ];
-  addCylinderBetween(loaderGroup, chuteBottom, discharge, 0.14, materials.chuteSleeve, 14);
-  addCylinderBetween(loaderGroup, discharge, chuteArrowEnd, 0.1, materials.chute, 12);
-  addSphere(loaderGroup, chuteArrowEnd, 0.22, materials.discharge);
+  trajectoryAttribute.setUsage(THREE.DynamicDrawUsage);
+  trajectoryGeometry.setAttribute("position", trajectoryAttribute);
+  trajectoryGeometry.setDrawRange(0, 0);
+  trajectoryLine = new THREE.Line(trajectoryGeometry, materials.trajectory);
+  trajectoryLine.frustumCulled = false;
+  scene.add(trajectoryLine);
 }
 
 function updateTrajectory(snapshot) {
   const point = worldToThree(snapshot.key_points.discharge_point);
-  trajectoryPoints.push(point);
-  if (trajectoryPoints.length > 280) {
-    trajectoryPoints = trajectoryPoints.slice(-280);
+  const values = trajectoryAttribute.array;
+  if (trajectoryCount >= trajectoryCapacity) {
+    values.copyWithin(0, 3);
+    trajectoryCount = trajectoryCapacity - 1;
   }
-
-  if (trajectoryLine) {
-    scene.remove(trajectoryLine);
-    trajectoryLine.geometry.dispose();
-  }
-
-  if (trajectoryPoints.length < 2) {
-    return;
-  }
-
-  const geometry = new THREE.BufferGeometry().setFromPoints(trajectoryPoints);
-  trajectoryLine = new THREE.Line(geometry, materials.trajectory);
-  scene.add(trajectoryLine);
+  trajectoryAttribute.setXYZ(trajectoryCount, point.x, point.y, point.z);
+  trajectoryCount += 1;
+  trajectoryAttribute.needsUpdate = true;
+  trajectoryGeometry.setDrawRange(0, trajectoryCount);
 }
 
 function renderSnapshot(snapshot) {
   latestSnapshot = snapshot;
-  rebuildLoader(snapshot);
+  shiploaderRig.update(snapshot);
   updateTrajectory(snapshot);
   updateReadouts(snapshot);
+  window.__shiploaderDiagnostics = {
+    ...shiploaderRig.getDiagnostics(),
+    rendererCalls: renderer.info.render.calls,
+    rendererTriangles: renderer.info.render.triangles,
+    rendererGeometries: renderer.info.memory.geometries,
+    rendererTextures: renderer.info.memory.textures,
+  };
 }
 
 function updateReadouts(snapshot) {
@@ -505,12 +353,13 @@ function updateReadouts(snapshot) {
   simClock.textContent = `t=${format(snapshot.sim_time, 1)}s`;
   stateReadout.innerHTML = "";
   const rows = [
-    ["Travel", `${format(axes.travel.current)} m`],
-    ["Slew", `${format(axes.slew.current)} deg`],
-    ["Luff", `${format(axes.boom_luff.current)} deg`],
-    ["Extend", `${format(axes.boom_extension.current)} m`],
-    ["Chute", `${format(axes.chute_rotate.current)} deg`],
-    ["Belt", `${snapshot.belt_state.running ? "ON" : "OFF"} ${format(snapshot.belt_state.speed_mps, 1)} m/s`],
+    ["方案", loaderConfig.variant_id],
+    ["大车", `${format(axes.travel.current)} m`],
+    ["回转", `${format(axes.slew.current)}°`],
+    ["俯仰", `${format(axes.boom_luff.current)}°`],
+    ["伸缩", `${format(axes.boom_extension.current)} m`],
+    ["溜筒", `${format(axes.chute_rotate.current)}°`],
+    ["皮带", `${snapshot.belt_state.running ? "运行" : "停止"} ${format(snapshot.belt_state.speed_mps, 1)} m/s`],
   ];
 
   for (const [label, value] of rows) {
@@ -525,32 +374,44 @@ function updateReadouts(snapshot) {
     const state = axes[axis.id];
     const current = document.querySelector(`[data-axis-current="${axis.id}"]`);
     if (current && state) {
-      current.textContent = `current ${format(state.current)} ${axis.unit} | target ${format(state.target)} ${axis.unit}`;
+      current.textContent = `当前 ${format(state.current)} ${axis.unit} · 目标 ${format(state.target)} ${axis.unit}`;
     }
   }
 
+  const diagnostics = shiploaderRig.getDiagnostics();
   setStatus(
-    `ships ${(window.currentScene?.vessels ?? []).length} | discharge ${format(snapshot.key_points.discharge_point[0])}, ${format(snapshot.key_points.discharge_point[1])}, ${format(snapshot.key_points.discharge_point[2])}`,
+    `${loaderConfig.variant_id} · 23 m 轨距 · 伸缩 21.25 m · 关键点误差 ${format(diagnostics.maxKeypointErrorM, 4)} m`,
   );
 }
 
 function createAxisControls(snapshot) {
-  axisControls.innerHTML = "";
+  axisControls.innerHTML = `
+    <p class="axis-help">
+      范围说明：目标为机械行程上下限；速度为 0 到最大允许值。
+    </p>
+  `;
   for (const axis of AXES) {
     const state = snapshot.axis_states[axis.id];
+    const velocityUnit = axis.unit === "m" ? "m/s" : "deg/s";
+    const targetLimitId = `${axis.id}-target-limit`;
+    const velocityLimitId = `${axis.id}-velocity-limit`;
     const container = document.createElement("article");
     container.className = "axis-control";
     container.innerHTML = `
       <h2>${axis.label}</h2>
       <div class="field">
-        <label for="${axis.id}-target">Target</label>
-        <input id="${axis.id}-target" data-axis-target="${axis.id}" type="number" step="${axis.step}" value="${state.target}">
+        <label for="${axis.id}-target">目标</label>
+        <input id="${axis.id}-target" data-axis-target="${axis.id}" type="number" step="${axis.step}" value="${state.target}" aria-describedby="${targetLimitId}" required>
       </div>
       <div class="field">
-        <label for="${axis.id}-velocity">Speed</label>
-        <input id="${axis.id}-velocity" data-axis-velocity="${axis.id}" type="number" min="0" step="${axis.step}" value="${state.velocity}">
+        <label for="${axis.id}-velocity">速度</label>
+        <input id="${axis.id}-velocity" data-axis-velocity="${axis.id}" type="number" min="0" step="${axis.step}" value="${state.velocity}" aria-describedby="${velocityLimitId}" required>
       </div>
-      <button type="button" data-axis-submit="${axis.id}">Set</button>
+      <button type="button" data-axis-submit="${axis.id}">设置</button>
+      <div class="axis-limits">
+        <span id="${targetLimitId}">目标范围 ${formatLimit(state.min_value)} ～ ${formatLimit(state.max_value)} ${axis.unit}</span>
+        <span id="${velocityLimitId}">速度范围 0 ～ ${formatLimit(state.max_velocity)} ${velocityUnit}</span>
+      </div>
       <div class="axis-current" data-axis-current="${axis.id}"></div>
     `;
     const targetInput = container.querySelector(`[data-axis-target="${axis.id}"]`);
@@ -559,6 +420,10 @@ function createAxisControls(snapshot) {
     }
     if (state.max_value !== null && state.max_value !== undefined) {
       targetInput.max = state.max_value;
+    }
+    const velocityInput = container.querySelector(`[data-axis-velocity="${axis.id}"]`);
+    if (state.max_velocity !== null && state.max_velocity !== undefined) {
+      velocityInput.max = state.max_velocity;
     }
     axisControls.appendChild(container);
   }
@@ -685,6 +550,14 @@ async function requestJson(url, options = {}) {
 async function setAxisTarget(axisId) {
   const targetInput = document.querySelector(`[data-axis-target="${axisId}"]`);
   const velocityInput = document.querySelector(`[data-axis-velocity="${axisId}"]`);
+  if (!targetInput.checkValidity()) {
+    targetInput.reportValidity();
+    throw new Error("目标值超出允许范围");
+  }
+  if (!velocityInput.checkValidity()) {
+    velocityInput.reportValidity();
+    throw new Error("速度值超出允许范围");
+  }
   const payload = {
     target: Number(targetInput.value),
     velocity: Number(velocityInput.value),
@@ -764,32 +637,82 @@ async function resetSimulation() {
   running = false;
   runButton.classList.remove("primary");
   pauseButton.classList.remove("primary");
-  trajectoryPoints = [];
-  if (trajectoryLine) {
-    scene.remove(trajectoryLine);
-    trajectoryLine.geometry.dispose();
-    trajectoryLine = null;
-  }
+  trajectoryCount = 0;
+  trajectoryGeometry.setDrawRange(0, 0);
   const snapshot = await requestJson(API.reset, { method: "POST" });
   renderSnapshot(snapshot);
 }
 
 function resizeRenderer() {
   const rect = sceneRoot.getBoundingClientRect();
-  renderer.setSize(Math.max(1, rect.width), Math.max(1, rect.height), false);
-  camera.aspect = Math.max(1, rect.width) / Math.max(1, rect.height);
-  camera.updateProjectionMatrix();
+  const width = Math.max(1, rect.width);
+  const height = Math.max(1, rect.height);
+  const aspect = width / height;
+  renderer.setSize(width, height, false);
+  perspectiveCamera.aspect = aspect;
+  perspectiveCamera.updateProjectionMatrix();
+  const halfHeight = 35;
+  orthographicCamera.left = -halfHeight * aspect;
+  orthographicCamera.right = halfHeight * aspect;
+  orthographicCamera.top = halfHeight;
+  orthographicCamera.bottom = -halfHeight;
+  orthographicCamera.updateProjectionMatrix();
 }
 
 function renderLoop() {
   controls.update();
-  renderer.render(scene, camera);
+  renderer.render(scene, activeCamera);
+}
+
+function cameraTarget() {
+  if (!latestSnapshot) {
+    return new THREE.Vector3(0, 11, 6);
+  }
+  const base = worldToThree(latestSnapshot.key_points.base_position);
+  return new THREE.Vector3(base.x, loaderConfig.geometry.base_height_m * 0.75, base.z + 6);
+}
+
+function setCameraPreset(preset) {
+  const target = cameraTarget();
+  if (preset === "perspective") {
+    activeCamera = perspectiveCamera;
+    activeCamera.up.set(0, 1, 0);
+    activeCamera.position.copy(target).add(new THREE.Vector3(48, 34, 54));
+    controls.enableRotate = true;
+  } else {
+    activeCamera = orthographicCamera;
+    controls.enableRotate = false;
+    if (preset === "front") {
+      activeCamera.up.set(0, 1, 0);
+      activeCamera.position.copy(target).add(new THREE.Vector3(90, 0, 0));
+    } else if (preset === "side") {
+      activeCamera.up.set(0, 1, 0);
+      activeCamera.position.copy(target).add(new THREE.Vector3(0, 0, 90));
+    } else {
+      activeCamera.up.set(0, 0, -1);
+      activeCamera.position.copy(target).add(new THREE.Vector3(0, 100, 0));
+    }
+  }
+  controls.object = activeCamera;
+  controls.target.copy(target);
+  controls.update();
+  resizeRenderer();
+  for (const button of viewButtons.querySelectorAll("[data-view]")) {
+    button.classList.toggle("primary", button.dataset.view === preset);
+    button.setAttribute("aria-pressed", button.dataset.view === preset ? "true" : "false");
+  }
 }
 
 async function init() {
+  window.__shiploaderReady = false;
   renderer.shadowMap.enabled = true;
   setupLights();
-  setupStaticScene();
+  loaderConfig = await requestJson(API.loaderConfig);
+  modelBadge.textContent = `${loaderConfig.variant_id} · ${format(loaderConfig.engineering.rated_capacity_tph, 0)} t/h`;
+  setupStaticScene(loaderConfig);
+  setupTrajectory();
+  shiploaderRig = new ProceduralShiploaderRig(loaderConfig);
+  loaderGroup.add(shiploaderRig.root);
   resizeRenderer();
 
   const resizeObserver = new ResizeObserver(resizeRenderer);
@@ -801,14 +724,23 @@ async function init() {
   resetButton.addEventListener("click", () => resetSimulation().catch((error) => setStatus(error.message)));
   applySceneButton.addEventListener("click", () => applySceneJson().catch((error) => setStatus(error.message)));
   applyCoversButton.addEventListener("click", () => applyCoverControls().catch((error) => setStatus(error.message)));
+  viewButtons.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-view]");
+    if (button) {
+      setCameraPreset(button.dataset.view);
+    }
+  });
 
   await loadScene();
   const snapshot = await requestJson(API.state);
   createAxisControls(snapshot);
   renderSnapshot(snapshot);
+  setCameraPreset("perspective");
+  renderer.compile(scene, activeCamera);
 
   renderer.setAnimationLoop(renderLoop);
   tickTimer = window.setInterval(stepSimulation, 100);
+  window.__shiploaderReady = true;
 }
 
 window.addEventListener("beforeunload", () => {

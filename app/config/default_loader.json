@@ -1,22 +1,69 @@
 {
-  "loader_id": "SL01",
+  "schema_version": "2.0",
+  "loader_id": "SL15",
+  "variant_id": "SL15",
+  "coordinate_system": "WORLD_Z_UP_METERS",
+  "engineering": {
+    "rated_capacity_tph": 8000.0,
+    "max_capacity_tph": 9200.0,
+    "rail_gauge_m": 23.0,
+    "wheel_base_m": 22.0,
+    "outreach_min_m": 16.5,
+    "outreach_max_m": 37.75,
+    "boom_extension_travel_m": 21.25,
+    "boom_luff_min_deg": -10.0,
+    "boom_luff_max_deg": 24.0,
+    "boom_slew_min_deg": -35.0,
+    "boom_slew_max_deg": 215.0,
+    "boom_extension_max_speed_mps": 0.1,
+    "boom_slew_max_speed_degps": 1.02,
+    "travel_max_speed_mps": 0.5,
+    "chute_rotation_range_deg": 360.0,
+    "chute_max_speed_degps": 12.0,
+    "belt_width_m": 2.4,
+    "belt_speed_mps": 4.8,
+    "max_wheel_load_kn": 450.0
+  },
   "geometry": {
     "rail_origin": [0.0, 0.0, 0.0],
     "rail_direction": [1.0, 0.0, 0.0],
-    "base_height_m": 8.0,
-    "boom_base_offset": [0.0, 0.0, 1.5],
-    "boom_base_length_m": 25.0,
+    "base_height_m": 12.0,
+    "boom_base_offset": [0.0, 0.0, 1.8],
+    "boom_base_length_m": 16.5,
     "boom_extension_min_m": 0.0,
-    "boom_extension_max_m": 15.0,
-    "chute_length_m": 2.6,
-    "discharge_offset": [0.0, 0.0, -0.35],
+    "boom_extension_max_m": 21.25,
+    "chute_length_m": 12.6,
+    "discharge_offset": [0.0, 0.0, -0.6],
     "visual_scale": 1.0
+  },
+  "visual": {
+    "model_mode": "procedural",
+    "asset_revision": "sl15-procedural-r4",
+    "material_preset": "industrial-neutral",
+    "portal_height_m": 12.0,
+    "portal_top_length_m": 10.0,
+    "portal_top_width_m": 8.0,
+    "boom_truss_width_m": 2.8,
+    "boom_truss_height_m": 2.5,
+    "telescopic_overlap_m": 3.0,
+    "chute_segments": 3,
+    "chute_top_platform_width_m": 3.8,
+    "chute_top_platform_depth_m": 3.2,
+    "chute_trunk_radius_m": 0.82,
+    "chute_guide_frame_width_m": 2.5,
+    "chute_lower_platform_width_m": 4.2,
+    "chute_lower_platform_depth_m": 3.5,
+    "chute_branch_length_m": 3.1,
+    "chute_branch_spread_m": 1.65,
+    "chute_ladder_rungs": 15,
+    "show_maintenance_details": true
   },
   "axes": {
     "travel": {
       "type": "linear",
       "current": 0.0,
-      "velocity": 1.0,
+      "velocity": 0.5,
+      "max_velocity": 0.5,
       "min_value": -100.0,
       "max_value": 100.0,
       "tolerance": 0.001
@@ -24,34 +71,45 @@
     "slew": {
       "type": "rotary",
       "current": 0.0,
-      "velocity": 5.0,
-      "min_value": -180.0,
-      "max_value": 180.0,
+      "velocity": 1.02,
+      "max_velocity": 1.02,
+      "min_value": -35.0,
+      "max_value": 215.0,
       "tolerance": 0.001
     },
     "boom_luff": {
       "type": "rotary",
       "current": 10.0,
       "velocity": 2.0,
+      "max_velocity": 2.0,
       "min_value": -10.0,
-      "max_value": 45.0,
+      "max_value": 24.0,
       "tolerance": 0.001
     },
     "boom_extension": {
       "type": "linear",
       "current": 0.0,
-      "velocity": 0.5,
+      "velocity": 0.1,
+      "max_velocity": 0.1,
       "min_value": 0.0,
-      "max_value": 15.0,
+      "max_value": 21.25,
       "tolerance": 0.001
     },
     "chute_rotate": {
       "type": "rotary",
       "current": 0.0,
-      "velocity": 10.0,
+      "velocity": 12.0,
+      "max_velocity": 12.0,
       "min_value": -180.0,
       "max_value": 180.0,
       "tolerance": 0.001
     }
-  }
+  },
+  "notes": [
+    "SL15 is the selected implementation variant.",
+    "The 16.5 m kinematic base length follows the SL15 minimum outreach for this visual simulation and is not a manufacturing dimension.",
+    "The 12.6 m chute envelope is a scaled visual reconstruction from the SL15 elevation and the supplied chute detail screenshot, not a manufacturing dimension.",
+    "Portal, pivot and unlabelled local chute dimensions remain visual modelling assumptions pending DWG or STEP confirmation.",
+    "Boom luff angular velocity remains a simulation value because the drawing specifies an approximately 8 m/min mechanism line speed."
+  ]
 }

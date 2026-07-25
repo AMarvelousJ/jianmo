@@ -15,7 +15,7 @@ def test_state_endpoint_returns_snapshot():
     response = client.get("/api/state")
     assert response.status_code == 200
     body = response.json()
-    assert body["loader_id"] == "SL01"
+    assert body["loader_id"] == "SL15"
     assert "axis_states" in body
     assert "key_points" in body
     assert "fixed_boom_tip_position" in body["key_points"]
@@ -27,12 +27,12 @@ def test_luff_and_extension_targets_move_after_step():
 
     luff_response = client.post(
         "/api/axis/boom_luff/target",
-        json={"target": 30.0, "velocity": 5.0},
+        json={"target": 20.0, "velocity": 2.0},
     )
     assert luff_response.status_code == 200
     extension_response = client.post(
         "/api/axis/boom_extension/target",
-        json={"target": 10.0, "velocity": 2.0},
+        json={"target": 10.0, "velocity": 0.1},
     )
     assert extension_response.status_code == 200
 
@@ -41,12 +41,40 @@ def test_luff_and_extension_targets_move_after_step():
     assert step_response.status_code == 200
     after = step_response.json()
 
-    assert before["axis_states"]["boom_luff"]["target"] == 30.0
+    assert before["axis_states"]["boom_luff"]["target"] == 20.0
     assert before["axis_states"]["boom_extension"]["target"] == 10.0
     assert after["axis_states"]["boom_luff"]["current"] > before["axis_states"]["boom_luff"]["current"]
     assert after["axis_states"]["boom_extension"]["current"] > before["axis_states"]["boom_extension"]["current"]
     assert after["key_points"]["boom_tip_position"] != before["key_points"]["boom_tip_position"]
     client.post("/api/simulation/reset")
+
+
+def test_loader_config_endpoint_returns_sl15_profile():
+    client = TestClient(app)
+    response = client.get("/api/loader/config")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["variant_id"] == "SL15"
+    assert body["loader_id"] == "SL15"
+    assert body["engineering"]["rail_gauge_m"] == 23.0
+    assert body["engineering"]["wheel_base_m"] == 22.0
+    assert body["engineering"]["outreach_max_m"] == 37.75
+    assert body["engineering"]["boom_extension_travel_m"] == 21.25
+    assert body["geometry"]["boom_extension_max_m"] == 21.25
+    assert body["geometry"]["chute_length_m"] == 12.6
+    assert body["visual"]["asset_revision"] == "sl15-procedural-r4"
+    assert body["visual"]["chute_ladder_rungs"] == 15
+
+
+def test_axis_command_rejects_speed_above_sl15_limit():
+    client = TestClient(app)
+    client.post("/api/simulation/reset")
+    response = client.post(
+        "/api/axis/boom_extension/target",
+        json={"target": 1.0, "velocity": 0.11},
+    )
+    assert response.status_code == 400
+    assert "max_velocity" in response.json()["detail"]
 
 
 def test_scene_endpoint_returns_default_scene():

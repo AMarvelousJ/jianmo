@@ -14,6 +14,7 @@ class MotionAxis:
         self.current = float(config.current)
         self.target = float(config.target if config.target is not None else config.current)
         self.velocity = float(config.velocity)
+        self.max_velocity = float(config.max_velocity if config.max_velocity is not None else config.velocity)
         self.enabled = config.enabled
         self.running = config.running
         self.min_value = config.min_value
@@ -29,6 +30,8 @@ class MotionAxis:
         if velocity is not None:
             if velocity < 0:
                 raise ValueError("velocity cannot be negative")
+            if velocity > self.max_velocity:
+                raise ValueError(f"velocity exceeds max_velocity for axis {self.axis_id}")
             self.velocity = float(velocity)
         self.target = float(target)
         self.at_target = self._is_at_target()
@@ -90,6 +93,7 @@ class MotionAxis:
             current=self.current,
             target=self.target,
             velocity=self.velocity,
+            max_velocity=self.max_velocity,
             enabled=self.enabled,
             running=self.running,
             at_target=self.at_target,
@@ -109,4 +113,3 @@ class MotionAxis:
 
     def _is_at_target(self) -> bool:
         return abs(self.target - self.current) <= self.tolerance
-

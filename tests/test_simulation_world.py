@@ -16,7 +16,7 @@ def test_sim_time_increases():
 
 def test_pause_keeps_state():
     world = make_world()
-    world.loader.set_axis_target("travel", 10.0, velocity=1.0)
+    world.loader.set_axis_target("travel", 10.0, velocity=0.5)
     world.step(1.0)
     before = world.get_snapshot()
     world.pause()
@@ -27,7 +27,7 @@ def test_pause_keeps_state():
 
 def test_resume_continues_motion():
     world = make_world()
-    world.loader.set_axis_target("travel", 10.0, velocity=1.0)
+    world.loader.set_axis_target("travel", 10.0, velocity=0.5)
     world.pause()
     paused = world.step(1.0)
     world.resume()
@@ -38,17 +38,17 @@ def test_resume_continues_motion():
 
 def test_multiple_axes_update_together():
     world = make_world()
-    world.loader.set_axis_target("travel", 10.0, velocity=1.0)
-    world.loader.set_axis_target("slew", 45.0, velocity=5.0)
+    world.loader.set_axis_target("travel", 10.0, velocity=0.5)
+    world.loader.set_axis_target("slew", 45.0, velocity=1.02)
     snapshot = world.step(1.0)
-    assert snapshot.axis_states["travel"].current == pytest.approx(1.0)
-    assert snapshot.axis_states["slew"].current == pytest.approx(5.0)
+    assert snapshot.axis_states["travel"].current == pytest.approx(0.5)
+    assert snapshot.axis_states["slew"].current == pytest.approx(1.02)
 
 
 def test_snapshot_has_all_required_fields():
     world = make_world()
     snapshot = world.get_snapshot()
-    assert snapshot.loader_id == "SL01"
+    assert snapshot.loader_id == "SL15"
     assert set(snapshot.axis_states) >= {
         "travel",
         "slew",
@@ -66,4 +66,3 @@ def test_snapshot_has_all_required_fields():
     }
     assert snapshot.belt_state.running is False
     assert snapshot.vessel_motion.used_for_discharge_coordinate is False
-
