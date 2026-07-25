@@ -43,6 +43,57 @@
           <button id="reset-button" type="button">复位</button>
         </div>
 
+        <section class="path-panel" aria-labelledby="path-panel-title">
+          <header class="section-header">
+            <div>
+              <h2 id="path-panel-title">目标点路径规划</h2>
+              <p>艏部朝上 · 10 × 8 网格</p>
+            </div>
+            <span id="path-status-badge" class="path-status-badge">待选择</span>
+          </header>
+
+          <div class="path-selectors">
+            <label>
+              船舶
+              <select id="path-vessel-select"></select>
+            </label>
+            <label>
+              舱口
+              <select id="path-hold-select"></select>
+            </label>
+            <label>
+              列（艏→艉）
+              <input id="path-column-input" type="number" min="1" max="10" value="9">
+            </label>
+            <label>
+              行（左舷→右舷）
+              <input id="path-row-input" type="number" min="1" max="8" value="4">
+            </label>
+          </div>
+
+          <div class="hatch-grid-shell">
+            <div class="hatch-grid-bow">艏 · 列 1</div>
+            <div class="hatch-grid-row-labels" aria-hidden="true">
+              <span>左舷 · 行 1</span>
+              <span>行 8 · 右舷</span>
+            </div>
+            <div id="hatch-grid" class="hatch-grid" role="grid" aria-label="舱口 10 乘 8 网格"></div>
+            <div class="hatch-grid-stern">艉 · 列 10</div>
+          </div>
+
+          <div class="path-actions">
+            <button id="path-preview-button" type="button">预览路径</button>
+            <button id="path-start-button" type="button" disabled>开始移动</button>
+            <button id="path-pause-button" type="button" disabled>暂停</button>
+            <button id="path-resume-button" type="button" disabled>恢复</button>
+            <button id="path-cancel-button" type="button" disabled>取消</button>
+          </div>
+
+          <div id="path-target-readout" class="path-target-readout">请选择目标网格并预览。</div>
+          <ol id="path-stage-list" class="path-stage-list" aria-label="六阶段路径"></ol>
+          <div id="path-message" class="path-message" role="status" aria-live="polite"></div>
+        </section>
+
         <section class="axis-panel" id="axis-controls"></section>
 
         <section class="cover-panel">
@@ -66,6 +117,6 @@
       </aside>
     </main>
 
-    <script type="module" src="/app.js?v=20260725-sl15-r4-limits"></script>
+    <script type="module" src="/app.js?v=20260725-sl15-path-planning-r1"></script>
   </body>
 </html>

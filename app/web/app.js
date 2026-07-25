@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { worldToThree } from "./shiploader/coordinate-frame.js";
+import { worldToThree, worldYawToThreeRadians } from "./shiploader/coordinate-frame.js";
 import { ProceduralShiploaderRig } from "./shiploader/procedural-rig.js?v=sl15-procedural-r4";
 
 const API = {
@@ -12,6 +12,10 @@ const API = {
   resume: "/api/simulation/resume",
   reset: "/api/simulation/reset",
   axisTarget: (axisId) => `/api/axis/${axisId}/target`,
+  holdGrid: (vesselId, holdId) => `/api/vessels/${encodeURIComponent(vesselId)}/holds/${encodeURIComponent(holdId)}/grid`,
+  pathPreview: "/api/path-plans/preview",
+  pathTasks: "/api/path-tasks",
+  pathTask: (taskId) => `/api/path-tasks/${encodeURIComponent(taskId)}`,
 };
 
 const AXES = [
@@ -20,6 +24,15 @@ const AXES = [
   { id: "boom_luff", label: "臂架俯仰", unit: "deg", step: "0.1" },
   { id: "boom_extension", label: "臂架伸缩", unit: "m", step: "0.1" },
   { id: "chute_rotate", label: "溜筒回转", unit: "deg", step: "1" },
+];
+
+const PATH_STAGES = [
+  { id: "safe_luff", label: "安全抬升" },
+  { id: "safe_retract", label: "安全回缩" },
+  { id: "safe_slew", label: "安全回转" },
+  { id: "travel", label: "大车行走" },
+  { id: "target_luff", label: "目标俯仰" },
+  { id: "final_approach", label: "最终定位" },
 ];
 
 const sceneRoot = document.querySelector("#scene-root");
@@ -36,6 +49,20 @@ const applySceneButton = document.querySelector("#apply-scene-button");
 const applyCoversButton = document.querySelector("#apply-covers-button");
 const modelBadge = document.querySelector("#model-badge");
 const viewButtons = document.querySelector("#view-buttons");
+const pathVesselSelect = document.querySelector("#path-vessel-select");
+const pathHoldSelect = document.querySelector("#path-hold-select");
+const pathColumnInput = document.querySelector("#path-column-input");
+const pathRowInput = document.querySelector("#path-row-input");
+const hatchGrid = document.querySelector("#hatch-grid");
+const pathPreviewButton = document.querySelector("#path-preview-button");
+const pathStartButton = document.querySelector("#path-start-button");
+const pathPauseButton = document.querySelector("#path-pause-button");
+const pathResumeButton = document.querySelector("#path-resume-button");
+const pathCancelButton = document.querySelector("#path-cancel-button");
+const pathTargetReadout = document.querySelector("#path-target-readout");
+const pathStageList = document.querySelector("#path-stage-list");
+const pathMessage = document.querySelector("#path-message");
+const pathStatusBadge = document.querySelector("#path-status-badge");
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xd6dee5);
@@ -76,12 +103,16 @@ const materials = {
   coverVertical: new THREE.MeshStandardMaterial({ color: 0xe6edf3, roughness: 0.48, metalness: 0.08 }),
   coverEdge: new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.5, metalness: 0.05 }),
   trajectory: new THREE.LineBasicMaterial({ color: 0x16a34a }),
+  pathCell: new THREE.LineBasicMaterial({ color: 0xf97316 }),
+  pathTarget: new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0x713f12, roughness: 0.35 }),
+  pathActual: new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x164e63, roughness: 0.35 }),
 };
 
 const staticGroup = new THREE.Group();
 const vesselsGroup = new THREE.Group();
 const loaderGroup = new THREE.Group();
-scene.add(staticGroup, vesselsGroup, loaderGroup);
+const pathOverlayGroup = new THREE.Group();
+scene.add(staticGroup, vesselsGroup, loaderGroup, pathOverlayGroup);
 
 let trajectoryLine = null;
 let trajectoryGeometry = null;
@@ -94,6 +125,13 @@ let shiploaderRig = null;
 let running = true;
 let stepping = false;
 let tickTimer = null;
+let currentGridData = null;
+let currentPlan = null;
+let currentTaskId = null;
+let selectedColumn = 9;
+let selectedRow = 4;
+let targetMarker = null;
+let actualMarker = null;
 
 function setStatus(message) {
   viewStatus.textContent = message;
@@ -202,6 +240,7 @@ function renderVessels(sceneData) {
     const group = new THREE.Group();
     group.name = vessel.id;
     group.position.copy(worldToThree(vessel.position));
+    group.rotation.y = worldYawToThreeRadians(vessel.yaw_deg ?? 0);
     vesselsGroup.add(group);
 
     const length = vessel.length_m;
@@ -307,6 +346,408 @@ function addHatchCover(group, hold, coverType, vesselHeight) {
   }
 }
 
+function setPathMessage(message, isError = false) {
+  pathMessage.textContent = message ?? "";
+  pathMessage.classList.toggle("error", isError);
+}
+
+function pathStageLabel(stageId) {
+  return PATH_STAGES.find((stage) => stage.id === stageId)?.label ?? stageId;
+}
+
+function axisTargetText(targets) {
+  return Object.entries(targets ?? {})
+    .map(([axisId, value]) => {
+      const axis = AXES.find((item) => item.id === axisId);
+      return `${axis?.label ?? axisId} ${format(Number(value))}${axis?.unit ?? ""}`;
+    })
+    .join(" · ");
+}
+
+async function refreshPathSelectors(sceneData, preferredVesselId = null, preferredHoldId = null) {
+  const vessels = sceneData.vessels ?? [];
+  const previousVessel = preferredVesselId ?? pathVesselSelect.value;
+  pathVesselSelect.innerHTML = "";
+  for (const vessel of vessels) {
+    const option = document.createElement("option");
+    option.value = vessel.id;
+    option.textContent = `${vessel.id} · ${vessel.side === "left" ? "左侧" : vessel.side === "right" ? "右侧" : "中间"}`;
+    pathVesselSelect.appendChild(option);
+  }
+  const fallbackVessel = vessels.find((item) => item.id === "Vessel-R") ?? vessels[0];
+  const selectedVessel = vessels.find((item) => item.id === previousVessel) ?? fallbackVessel;
+  pathVesselSelect.value = selectedVessel?.id ?? "";
+  refreshHoldOptions(sceneData, preferredHoldId);
+  await loadSelectedGrid();
+}
+
+function refreshHoldOptions(sceneData, preferredHoldId = null) {
+  const vessel = (sceneData.vessels ?? []).find((item) => item.id === pathVesselSelect.value);
+  const previousHold = preferredHoldId ?? pathHoldSelect.value;
+  pathHoldSelect.innerHTML = "";
+  for (const hold of vessel?.holds ?? []) {
+    const option = document.createElement("option");
+    option.value = hold.id;
+    option.textContent = `${hold.id} · ${hold.cover_state === "open" ? "舱盖已开" : "舱盖未开"}`;
+    pathHoldSelect.appendChild(option);
+  }
+  const fallbackHold = (vessel?.holds ?? []).find((item) => item.id === "R2") ?? vessel?.holds?.[0];
+  const selectedHold = (vessel?.holds ?? []).find((item) => item.id === previousHold) ?? fallbackHold;
+  pathHoldSelect.value = selectedHold?.id ?? "";
+}
+
+async function loadSelectedGrid() {
+  currentPlan = null;
+  currentTaskId = null;
+  currentGridData = null;
+  clearGroup(pathOverlayGroup);
+  targetMarker = null;
+  actualMarker = null;
+  pathStartButton.disabled = true;
+  pathStageList.innerHTML = "";
+  if (!pathVesselSelect.value || !pathHoldSelect.value) {
+    hatchGrid.innerHTML = "";
+    setPathMessage("当前场景没有可选择的船舶或舱口。", true);
+    return;
+  }
+  try {
+    currentGridData = await requestJson(
+      API.holdGrid(pathVesselSelect.value, pathHoldSelect.value),
+    );
+    renderHatchGrid();
+    setPathStatus("idle");
+    setPathMessage("选择网格后点击“预览路径”。");
+  } catch (error) {
+    hatchGrid.innerHTML = "";
+    setPathStatus("failed");
+    setPathMessage(error.message, true);
+  }
+}
+
+function renderHatchGrid() {
+  hatchGrid.innerHTML = "";
+  for (let column = 1; column <= 10; column += 1) {
+    for (let row = 1; row <= 8; row += 1) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.gridColumn = String(column);
+      button.dataset.gridRow = String(row);
+      button.setAttribute("role", "gridcell");
+      button.setAttribute("aria-label", `第 ${column} 列，第 ${row} 行`);
+      button.textContent = `${column},${row}`;
+      button.classList.toggle("selected", column === selectedColumn && row === selectedRow);
+      hatchGrid.appendChild(button);
+    }
+  }
+  selectGridCell(selectedColumn, selectedRow, { focus: false, invalidatePlan: false });
+}
+
+function selectGridCell(column, row, { focus = false, invalidatePlan = true } = {}) {
+  const nextColumn = Math.min(10, Math.max(1, Number(column)));
+  const nextRow = Math.min(8, Math.max(1, Number(row)));
+  selectedColumn = nextColumn;
+  selectedRow = nextRow;
+  pathColumnInput.value = String(nextColumn);
+  pathRowInput.value = String(nextRow);
+  for (const button of hatchGrid.querySelectorAll("[data-grid-column]")) {
+    const selected =
+      Number(button.dataset.gridColumn) === nextColumn
+      && Number(button.dataset.gridRow) === nextRow;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-selected", selected ? "true" : "false");
+    if (selected && focus) {
+      button.focus();
+    }
+  }
+  if (invalidatePlan) {
+    currentPlan = null;
+    currentTaskId = null;
+    pathStartButton.disabled = true;
+    pathStageList.innerHTML = "";
+    clearGroup(pathOverlayGroup);
+    targetMarker = null;
+    actualMarker = null;
+    setPathStatus("idle");
+    setPathMessage(`已选择 ${pathHoldSelect.value}（${nextColumn},${nextRow}），请预览路径。`);
+  }
+}
+
+function handleGridKeydown(event) {
+  const button = event.target.closest("[data-grid-column]");
+  if (!button) {
+    return;
+  }
+  let column = Number(button.dataset.gridColumn);
+  let row = Number(button.dataset.gridRow);
+  if (event.key === "ArrowUp") {
+    column -= 1;
+  } else if (event.key === "ArrowDown") {
+    column += 1;
+  } else if (event.key === "ArrowLeft") {
+    row -= 1;
+  } else if (event.key === "ArrowRight") {
+    row += 1;
+  } else {
+    return;
+  }
+  event.preventDefault();
+  const target = hatchGrid.querySelector(
+    `[data-grid-column="${Math.min(10, Math.max(1, column))}"][data-grid-row="${Math.min(8, Math.max(1, row))}"]`,
+  );
+  target?.focus();
+}
+
+async function previewSelectedPath() {
+  if (!pathColumnInput.checkValidity() || !pathRowInput.checkValidity()) {
+    throw new Error("网格列范围为 1～10，行范围为 1～8。");
+  }
+  selectGridCell(Number(pathColumnInput.value), Number(pathRowInput.value), {
+    focus: false,
+    invalidatePlan: false,
+  });
+  setPathMessage("正在计算坐标和六阶段路径……");
+  try {
+    currentPlan = await requestJson(API.pathPreview, {
+      method: "POST",
+      body: JSON.stringify({
+        vessel_id: pathVesselSelect.value,
+        hold_id: pathHoldSelect.value,
+        column: selectedColumn,
+        row: selectedRow,
+        loading_clearance_m: 1.0,
+        chute_heading_deg: null,
+      }),
+    });
+  } catch (error) {
+    currentPlan = null;
+    renderPathOverlay(null);
+    setPathStatus("failed");
+    setPathMessage(error.message, true);
+    updatePathButtons(null);
+    throw error;
+  }
+  renderPathPlan(currentPlan);
+  renderPathOverlay(currentPlan);
+  setPathStatus("ready");
+  setPathMessage("路径可执行。确认目标和六阶段轴值后可开始移动。");
+  updatePathButtons({ status: "ready" });
+}
+
+function renderPathPlan(plan) {
+  const point = plan.target.world_point;
+  const solution = plan.axis_solution;
+  pathTargetReadout.textContent =
+    `${plan.target.vessel_id} / ${plan.target.hold_id} / (${plan.target.column},${plan.target.row})`
+    + ` · 世界坐标 [${point.map((value) => format(value, 3)).join(", ")}] m`
+    + ` · 大车 ${format(solution.travel)} m`
+    + ` · 回转 ${format(solution.slew)}°`
+    + ` · 俯仰 ${format(solution.boom_luff)}°`
+    + ` · 伸缩 ${format(solution.boom_extension)} m`
+    + ` · 溜筒 ${format(solution.chute_rotate)}°`
+    + ` · 预计 ${format(plan.estimated_duration_s, 1)} s`;
+  pathStageList.innerHTML = "";
+  for (const [index, stage] of plan.stages.entries()) {
+    const item = document.createElement("li");
+    item.dataset.pathStage = stage.stage;
+    item.innerHTML = `
+      <span class="stage-index">${index + 1}</span>
+      <span>${pathStageLabel(stage.stage)}</span>
+      <span class="stage-value">${axisTargetText(stage.axis_targets)} · ${format(stage.estimated_duration_s, 1)}s</span>
+    `;
+    pathStageList.appendChild(item);
+  }
+}
+
+function renderPathTask(task) {
+  if (!task) {
+    updatePathButtons(null);
+    return;
+  }
+  currentTaskId = task.task_id ?? currentTaskId;
+  if (currentPlan) {
+    renderPathPlan(currentPlan);
+  }
+  setPathStatus(task.status);
+  const stageStatuses = new Map(
+    (task.stages ?? []).map((stage) => [stage.stage, stage.status]),
+  );
+  for (const [index, item] of [...pathStageList.children].entries()) {
+    const stageId = item.dataset.pathStage;
+    const explicitStatus = stageStatuses.get(stageId);
+    const isBeforeCurrent = task.stage_index && index + 1 < task.stage_index;
+    const isCurrent = task.current_stage === stageId;
+    item.classList.toggle(
+      "complete",
+      task.status === "arrived"
+        || explicitStatus === "completed"
+        || explicitStatus === "skipped"
+        || isBeforeCurrent,
+    );
+    item.classList.toggle("active", isCurrent && ["running", "paused"].includes(task.status));
+    item.classList.toggle("failed", isCurrent && task.status === "failed");
+  }
+  if (task.error) {
+    pathTargetReadout.textContent +=
+      ` · 误差 H ${format(task.error.horizontal_m, 3)} m`
+      + ` / V ${format(task.error.vertical_m, 3)} m`
+      + ` / θ ${format(task.error.heading_deg, 2)}°`;
+  }
+  if (task.status === "paused") {
+    running = false;
+    setPathMessage(`任务已暂停：${task.pause_reason ?? "等待恢复"}`);
+  } else if (task.status === "arrived") {
+    setPathMessage("已到位，位置和方向误差均满足要求。");
+  } else if (task.status === "failed") {
+    setPathMessage(`定位失败：${task.failure_message ?? task.failure_code ?? "未知原因"}`, true);
+  } else if (task.status === "cancelled") {
+    setPathMessage("任务已取消。");
+  } else if (task.current_stage) {
+    setPathMessage(`正在执行阶段 ${task.stage_index}/6：${pathStageLabel(task.current_stage)}`);
+  }
+  updatePathButtons(task);
+}
+
+function setPathStatus(status) {
+  const labels = {
+    idle: "待选择",
+    ready: "已预览",
+    running: "运行中",
+    paused: "已暂停",
+    arrived: "已到位",
+    cancelled: "已取消",
+    failed: "失败",
+  };
+  pathStatusBadge.textContent = labels[status] ?? status;
+  pathStatusBadge.dataset.status = status;
+}
+
+function updatePathButtons(task) {
+  const status = task?.status ?? (currentPlan ? "ready" : "idle");
+  const active = status === "running" || status === "paused";
+  pathPreviewButton.disabled = active;
+  pathStartButton.disabled = !currentPlan || active || status === "arrived";
+  pathPauseButton.disabled = status !== "running";
+  pathResumeButton.disabled = status !== "paused";
+  pathCancelButton.disabled = !active;
+  pathVesselSelect.disabled = active;
+  pathHoldSelect.disabled = active;
+  pathColumnInput.disabled = active;
+  pathRowInput.disabled = active;
+  for (const button of hatchGrid.querySelectorAll("button")) {
+    button.disabled = active;
+  }
+  for (const input of axisControls.querySelectorAll("input, button")) {
+    input.disabled = active;
+  }
+}
+
+async function startPathTask() {
+  if (!currentPlan) {
+    throw new Error("请先预览路径。");
+  }
+  const requestId = globalThis.crypto?.randomUUID?.() ?? `web-${Date.now()}`;
+  const task = await requestJson(API.pathTasks, {
+    method: "POST",
+    body: JSON.stringify({
+      request_id: requestId,
+      plan_id: currentPlan.plan_id,
+    }),
+  });
+  currentTaskId = task.task_id;
+  running = true;
+  runButton.classList.add("primary");
+  pauseButton.classList.remove("primary");
+  renderPathTask(task);
+}
+
+async function pausePathTask() {
+  if (!currentTaskId) {
+    return;
+  }
+  const task = await requestJson(`${API.pathTask(currentTaskId)}/pause`, { method: "POST" });
+  running = false;
+  renderPathTask(task);
+}
+
+async function resumePathTask() {
+  if (!currentTaskId) {
+    return;
+  }
+  const task = await requestJson(`${API.pathTask(currentTaskId)}/resume`, { method: "POST" });
+  running = true;
+  renderPathTask(task);
+}
+
+async function cancelPathTask() {
+  if (!currentTaskId) {
+    return;
+  }
+  const task = await requestJson(`${API.pathTask(currentTaskId)}/cancel`, { method: "POST" });
+  running = true;
+  renderPathTask(task);
+}
+
+function renderPathOverlay(plan) {
+  clearGroup(pathOverlayGroup);
+  targetMarker = null;
+  actualMarker = null;
+  if (!plan || !currentGridData) {
+    return;
+  }
+  const cell = currentGridData.cells.find(
+    (item) => item.column === plan.target.column && item.row === plan.target.row,
+  );
+  const vessel = (window.currentScene?.vessels ?? []).find(
+    (item) => item.id === plan.target.vessel_id,
+  );
+  if (cell) {
+    const halfLength = currentGridData.cell_length_m / 2;
+    const halfWidth = currentGridData.cell_width_m / 2;
+    const geometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-halfLength, 0.04, -halfWidth),
+      new THREE.Vector3(halfLength, 0.04, -halfWidth),
+      new THREE.Vector3(halfLength, 0.04, halfWidth),
+      new THREE.Vector3(-halfLength, 0.04, halfWidth),
+    ]);
+    const outline = new THREE.LineLoop(geometry, materials.pathCell);
+    outline.position.copy(worldToThree(cell.world_center_m));
+    outline.rotation.y = worldYawToThreeRadians(vessel?.yaw_deg ?? 0);
+    outline.name = "PATH_SelectedGridCell";
+    pathOverlayGroup.add(outline);
+  }
+  targetMarker = new THREE.Mesh(
+    new THREE.SphereGeometry(0.38, 16, 12),
+    materials.pathTarget,
+  );
+  targetMarker.position.copy(worldToThree(plan.target.world_point));
+  targetMarker.name = "PATH_TargetPoint";
+  pathOverlayGroup.add(targetMarker);
+
+  actualMarker = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.34),
+    materials.pathActual,
+  );
+  actualMarker.name = "PATH_ActualDischarge";
+  pathOverlayGroup.add(actualMarker);
+  if (latestSnapshot) {
+    actualMarker.position.copy(worldToThree(latestSnapshot.key_points.discharge_point));
+  }
+}
+
+function updatePathFromSnapshot(snapshot) {
+  if (actualMarker) {
+    actualMarker.position.copy(worldToThree(snapshot.key_points.discharge_point));
+  }
+  const task = snapshot.path_task;
+  const terminal = task && ["arrived", "failed", "cancelled"].includes(task.status);
+  if (task && (!terminal || !currentTaskId || task.task_id === currentTaskId)) {
+    if (terminal && !currentTaskId) {
+      return;
+    }
+    renderPathTask(snapshot.path_task);
+  }
+}
+
 function setupTrajectory() {
   trajectoryGeometry = new THREE.BufferGeometry();
   trajectoryAttribute = new THREE.BufferAttribute(
@@ -339,6 +780,7 @@ function renderSnapshot(snapshot) {
   shiploaderRig.update(snapshot);
   updateTrajectory(snapshot);
   updateReadouts(snapshot);
+  updatePathFromSnapshot(snapshot);
   window.__shiploaderDiagnostics = {
     ...shiploaderRig.getDiagnostics(),
     rendererCalls: renderer.info.render.calls,
@@ -461,10 +903,16 @@ function renderCoverControls(sceneData) {
       row.className = "cover-hold";
       row.innerHTML = `
         <strong>${hold.id}</strong>
+        <select data-cover-state="${vesselIndex}:${holdIndex}" aria-label="${hold.id} 舱盖状态">
+          <option value="open">已打开</option>
+          <option value="closed">已关闭</option>
+        </select>
         <input data-cover-length="${vesselIndex}:${holdIndex}" type="number" min="0" step="0.1" placeholder="Len or height" title="Horizontal: each side cover length. Vertical: each end cover height." value="${cover.length_m ?? ""}">
         <input data-cover-width="${vesselIndex}:${holdIndex}" type="number" min="0" step="0.1" placeholder="Pair width" title="One value is used for both side/end covers." value="${cover.width_m ?? ""}">
         <input data-cover-thickness="${vesselIndex}:${holdIndex}" type="number" min="0" step="0.01" placeholder="Thick" title="One value is used for both side/end covers." value="${cover.thickness_m ?? ""}">
       `;
+      row.querySelector(`[data-cover-state="${vesselIndex}:${holdIndex}"]`).value =
+        hold.cover_state ?? "closed";
       vesselSection.appendChild(row);
     }
 
@@ -491,6 +939,8 @@ async function applyCoverControls() {
     vessel.cover_type = typeSelect?.value ?? "none";
     for (const [holdIndex, hold] of (vessel.holds ?? []).entries()) {
       const key = `${vesselIndex}:${holdIndex}`;
+      hold.cover_state =
+        document.querySelector(`[data-cover-state="${key}"]`)?.value ?? "closed";
       const length = readOptionalNumber(document.querySelector(`[data-cover-length="${key}"]`), `${hold.id} cover length`);
       const width = readOptionalNumber(document.querySelector(`[data-cover-width="${key}"]`), `${hold.id} cover width`);
       const thickness = readOptionalNumber(
@@ -523,6 +973,7 @@ async function applyCoverControls() {
   sceneJson.value = JSON.stringify(sceneData, null, 2);
   renderVessels(sceneData);
   renderCoverControls(sceneData);
+  await refreshPathSelectors(sceneData, pathVesselSelect.value, pathHoldSelect.value);
   if (latestSnapshot) {
     renderSnapshot(latestSnapshot);
   }
@@ -538,7 +989,12 @@ async function requestJson(url, options = {}) {
     const text = await response.text();
     let detail = text;
     try {
-      detail = JSON.parse(text).detail ?? text;
+      const parsed = JSON.parse(text);
+      detail = parsed.detail ?? parsed;
+      if (detail && typeof detail === "object") {
+        const code = detail.code ? ` [${detail.code}]` : "";
+        detail = `${detail.message ?? JSON.stringify(detail)}${code}`;
+      }
     } catch {
       detail = text;
     }
@@ -580,6 +1036,7 @@ async function loadScene() {
   sceneJson.value = JSON.stringify(sceneData, null, 2);
   renderVessels(sceneData);
   renderCoverControls(sceneData);
+  await refreshPathSelectors(sceneData);
   return sceneData;
 }
 
@@ -593,6 +1050,7 @@ async function applySceneJson() {
   sceneJson.value = JSON.stringify(sceneData, null, 2);
   renderVessels(sceneData);
   renderCoverControls(sceneData);
+  await refreshPathSelectors(sceneData, pathVesselSelect.value, pathHoldSelect.value);
   if (latestSnapshot) {
     renderSnapshot(latestSnapshot);
   }
@@ -724,6 +1182,45 @@ async function init() {
   resetButton.addEventListener("click", () => resetSimulation().catch((error) => setStatus(error.message)));
   applySceneButton.addEventListener("click", () => applySceneJson().catch((error) => setStatus(error.message)));
   applyCoversButton.addEventListener("click", () => applyCoverControls().catch((error) => setStatus(error.message)));
+  pathVesselSelect.addEventListener("change", () => {
+    refreshHoldOptions(window.currentScene ?? { vessels: [] });
+    loadSelectedGrid().catch((error) => setPathMessage(error.message, true));
+  });
+  pathHoldSelect.addEventListener("change", () => {
+    loadSelectedGrid().catch((error) => setPathMessage(error.message, true));
+  });
+  hatchGrid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-grid-column]");
+    if (button) {
+      selectGridCell(button.dataset.gridColumn, button.dataset.gridRow);
+    }
+  });
+  hatchGrid.addEventListener("keydown", handleGridKeydown);
+  pathColumnInput.addEventListener("change", () => {
+    if (pathColumnInput.checkValidity()) {
+      selectGridCell(pathColumnInput.value, pathRowInput.value);
+    }
+  });
+  pathRowInput.addEventListener("change", () => {
+    if (pathRowInput.checkValidity()) {
+      selectGridCell(pathColumnInput.value, pathRowInput.value);
+    }
+  });
+  pathPreviewButton.addEventListener("click", () => {
+    previewSelectedPath().catch((error) => setPathMessage(error.message, true));
+  });
+  pathStartButton.addEventListener("click", () => {
+    startPathTask().catch((error) => setPathMessage(error.message, true));
+  });
+  pathPauseButton.addEventListener("click", () => {
+    pausePathTask().catch((error) => setPathMessage(error.message, true));
+  });
+  pathResumeButton.addEventListener("click", () => {
+    resumePathTask().catch((error) => setPathMessage(error.message, true));
+  });
+  pathCancelButton.addEventListener("click", () => {
+    cancelPathTask().catch((error) => setPathMessage(error.message, true));
+  });
   viewButtons.addEventListener("click", (event) => {
     const button = event.target.closest("[data-view]");
     if (button) {

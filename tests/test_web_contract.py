@@ -83,6 +83,46 @@ def test_axis_controls_show_and_enforce_target_and_velocity_limits():
     assert "velocityInput.checkValidity()" in APP_JS
 
 
+def test_path_planning_panel_and_six_stage_contract_are_present():
+    for element_id in (
+        "path-vessel-select",
+        "path-hold-select",
+        "path-column-input",
+        "path-row-input",
+        "hatch-grid",
+        "path-preview-button",
+        "path-start-button",
+        "path-pause-button",
+        "path-resume-button",
+        "path-cancel-button",
+        "path-stage-list",
+    ):
+        assert f'id="{element_id}"' in INDEX_HTML
+
+    for stage in (
+        "safe_luff",
+        "safe_retract",
+        "safe_slew",
+        "travel",
+        "target_luff",
+        "final_approach",
+    ):
+        assert stage in APP_JS
+
+    assert "PATH_SelectedGridCell" in APP_JS
+    assert "PATH_TargetPoint" in APP_JS
+    assert "PATH_ActualDischarge" in APP_JS
+    assert "worldYawToThreeRadians" in APP_JS
+    assert 'role="grid"' in INDEX_HTML
+    assert "handleGridKeydown" in APP_JS
+
+
+def test_cover_controls_expose_explicit_open_closed_state():
+    assert "data-cover-state" in APP_JS
+    assert '<option value="open">已打开</option>' in APP_JS
+    assert '<option value="closed">已关闭</option>' in APP_JS
+
+
 def test_visual_baseline_matrix_is_complete():
     baseline_dir = ROOT / "tests" / "visual-baselines" / "sl15"
     expected_scenes = (

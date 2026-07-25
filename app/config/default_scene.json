@@ -7,6 +7,7 @@
       "width_m": 8.0,
       "height_m": 3.2,
       "side": "left",
+      "yaw_deg": 0.0,
       "cover_type": "horizontal",
       "holds": [
         {
@@ -15,6 +16,8 @@
           "length_m": 8.0,
           "width_m": 5.8,
           "fill_level": 0.9,
+          "hatch_plane_offset_z_m": 2.02,
+          "cover_state": "open",
           "cover": {
             "length_m": 7.6,
             "width_m": 2.1,
@@ -27,6 +30,8 @@
           "length_m": 8.0,
           "width_m": 5.8,
           "fill_level": 0.85,
+          "hatch_plane_offset_z_m": 2.02,
+          "cover_state": "open",
           "cover": {
             "length_m": 7.6,
             "width_m": 2.1,
@@ -39,6 +44,8 @@
           "length_m": 8.0,
           "width_m": 5.8,
           "fill_level": 0.75,
+          "hatch_plane_offset_z_m": 2.02,
+          "cover_state": "open",
           "cover": {
             "length_m": 7.6,
             "width_m": 2.1,
@@ -51,6 +58,8 @@
           "length_m": 8.0,
           "width_m": 5.8,
           "fill_level": 0.35,
+          "hatch_plane_offset_z_m": 2.02,
+          "cover_state": "open",
           "cover": {
             "length_m": 7.6,
             "width_m": 2.1,
@@ -66,6 +75,7 @@
       "width_m": 8.5,
       "height_m": 3.2,
       "side": "right",
+      "yaw_deg": 0.0,
       "cover_type": "vertical",
       "holds": [
         {
@@ -74,6 +84,8 @@
           "length_m": 8.2,
           "width_m": 6.0,
           "fill_level": 0.15,
+          "hatch_plane_offset_z_m": 2.02,
+          "cover_state": "open",
           "cover": {
             "length_m": 2.4,
             "width_m": 5.8,
@@ -86,6 +98,8 @@
           "length_m": 8.2,
           "width_m": 6.0,
           "fill_level": 0.55,
+          "hatch_plane_offset_z_m": 2.02,
+          "cover_state": "open",
           "cover": {
             "length_m": 2.4,
             "width_m": 5.8,
@@ -98,6 +112,8 @@
           "length_m": 8.2,
           "width_m": 6.0,
           "fill_level": 0.85,
+          "hatch_plane_offset_z_m": 2.02,
+          "cover_state": "open",
           "cover": {
             "length_m": 2.4,
             "width_m": 5.8,
@@ -110,6 +126,8 @@
           "length_m": 8.2,
           "width_m": 6.0,
           "fill_level": 0.75,
+          "hatch_plane_offset_z_m": 2.02,
+          "cover_state": "open",
           "cover": {
             "length_m": 2.4,
             "width_m": 5.8,
@@ -122,6 +140,8 @@
           "length_m": 8.2,
           "width_m": 6.0,
           "fill_level": 0.3,
+          "hatch_plane_offset_z_m": 2.02,
+          "cover_state": "open",
           "cover": {
             "length_m": 2.4,
             "width_m": 5.8,

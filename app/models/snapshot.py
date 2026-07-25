@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 from app.models.axis import AxisState
 from app.models.pose import Pose, Vec3
+from app.models.path_planning import PathTaskSummary
 
 
 class KinematicsResult(BaseModel):
@@ -70,3 +71,4 @@ class SimulationSnapshot(BaseModel):
     vessel_motion: VesselPose
     warnings: list[str] = Field(default_factory=list)
     constraints: dict[str, object] = Field(default_factory=dict)
+    path_task: PathTaskSummary | None = None
