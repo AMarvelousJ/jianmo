@@ -3,7 +3,9 @@ from __future__ import annotations
 from app.api.command_service import MotionCommandService
 from app.api.state_service import SimulationStateService
 from app.config.loader import create_ship_loader, load_loader_profile
+from app.config.plc import load_plc_settings
 from app.config.scene import load_scene_config
+from app.core.plc.sync_service import PlcSyncService
 from app.core.scene_state import SceneState
 from app.core.simulation_world import SimulationWorld
 from app.core.path_planning.grid_transformer import GridTransformer
@@ -31,6 +33,8 @@ _path_task_manager = PathTaskManager(
     _path_planner,
 )
 _world.attach_path_task_manager(_path_task_manager)
+_plc_sync_service = PlcSyncService(load_plc_settings())
+_world.attach_plc_sync_service(_plc_sync_service)
 
 
 def get_world() -> SimulationWorld:
@@ -67,3 +71,7 @@ def get_path_plan_store() -> PathPlanStore:
 
 def get_path_task_manager() -> PathTaskManager:
     return _path_task_manager
+
+
+def get_plc_sync_service() -> PlcSyncService:
+    return _plc_sync_service

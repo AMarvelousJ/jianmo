@@ -59,6 +59,21 @@ Open the Web 3D visualization:
 http://127.0.0.1:8000/
 ```
 
+Run with SL15 PLC feedback synchronization on Windows:
+
+```powershell
+.\scripts\start_sim_with_plc.ps1 -PlcIp 10.60.97.40 -PlcSlot 0 -WebPort 8765
+```
+
+The PLC integration is disabled by default. Before enabling it, import the 14
+`SL15_HIL_*` feedback tags from
+`work/SL15_P1_feedback_tags_import_v20.csv` and download the reviewed project
+to the test controller. Check the live connection state at:
+
+```text
+http://127.0.0.1:8765/api/plc/status
+```
+
 Scene vessels and hatch counts are API-driven:
 
 ```bash

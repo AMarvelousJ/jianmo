@@ -10,6 +10,17 @@ def test_health_endpoint():
     assert response.json() == {"status": "ok"}
 
 
+def test_plc_status_endpoint_is_safe_by_default():
+    client = TestClient(app)
+    response = client.get("/api/plc/status")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["enabled"] is False
+    assert body["connected"] is False
+    assert body["plc_ip"] == "10.60.97.40"
+    assert body["slot"] == 0
+
+
 def test_state_endpoint_returns_snapshot():
     client = TestClient(app)
     response = client.get("/api/state")

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -7,9 +8,25 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routers import axis, loader, path_plans, path_tasks, scene, simulation, state
+from app.api.dependencies import get_plc_sync_service
+from app.api.routers import axis, loader, path_plans, path_tasks, plc, scene, simulation, state
 
-app = FastAPI(title="Shiploader Motion Simulation API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    plc_sync_service = get_plc_sync_service()
+    plc_sync_service.start()
+    try:
+        yield
+    finally:
+        plc_sync_service.stop()
+
+
+app = FastAPI(
+    title="Shiploader Motion Simulation API",
+    version="0.1.0",
+    lifespan=lifespan,
+)
 app.include_router(simulation.router)
 app.include_router(axis.router)
 app.include_router(state.router)
@@ -17,6 +34,7 @@ app.include_router(scene.router)
 app.include_router(loader.router)
 app.include_router(path_plans.router)
 app.include_router(path_tasks.router)
+app.include_router(plc.router)
 
 
 @app.exception_handler(RequestValidationError)

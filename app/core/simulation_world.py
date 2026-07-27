@@ -10,6 +10,7 @@ from app.models.snapshot import SimulationSnapshot
 if TYPE_CHECKING:
     from app.core.path_planning.path_task_executor import PathTaskExecutor
     from app.core.path_planning.task_manager import PathTaskManager
+    from app.core.plc.sync_service import PlcSyncService
 
 
 class SimulationWorld:
@@ -29,6 +30,7 @@ class SimulationWorld:
         self.lock = threading.RLock()
         self.path_task_manager: PathTaskManager | None = None
         self.path_task_executor: PathTaskExecutor | None = None
+        self.plc_sync_service: PlcSyncService | None = None
         self._initial_axis_values = {
             axis_id: axis.current for axis_id, axis in self.loader.axes.items()
         }
@@ -46,7 +48,13 @@ class SimulationWorld:
                     self.sim_time += actual_dt
                     if self.path_task_executor is not None:
                         self.path_task_executor.after_step()
-            return self.get_snapshot()
+            snapshot = self.get_snapshot()
+            if self.plc_sync_service is not None:
+                self.plc_sync_service.publish_snapshot(
+                    snapshot,
+                    sim_running=not self.paused,
+                )
+            return snapshot
 
     def pause(self) -> None:
         with self.lock:
@@ -68,6 +76,14 @@ class SimulationWorld:
         with self.lock:
             self.path_task_manager = manager
             self.path_task_executor = manager.executor
+
+    def attach_plc_sync_service(self, service: PlcSyncService) -> None:
+        with self.lock:
+            self.plc_sync_service = service
+            service.publish_snapshot(
+                self.get_snapshot(),
+                sim_running=not self.paused,
+            )
 
     def get_snapshot(self) -> SimulationSnapshot:
         with self.lock:

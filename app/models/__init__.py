@@ -1,6 +1,7 @@
 from app.models.axis import AxisConfig, AxisState
 from app.models.geometry import ShipLoaderGeometry
 from app.models.loader_config import LoaderEngineering, LoaderProfile, LoaderVisualConfig
+from app.models.plc import PlcStatus
 from app.models.pose import Pose, Vec3
 from app.models.scene import HatchCoverConfig, HoldConfig, SceneConfig, VesselConfig
 from app.models.snapshot import (
@@ -22,6 +23,7 @@ __all__ = [
     "LoaderProfile",
     "LoaderVisualConfig",
     "Pose",
+    "PlcStatus",
     "SceneConfig",
     "ShipLoaderGeometry",
     "ShipLoaderState",
