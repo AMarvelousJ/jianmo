@@ -8,6 +8,8 @@ from app.core.vessel_motion import VesselMotion
 from app.models.snapshot import SimulationSnapshot
 
 if TYPE_CHECKING:
+    from app.core.loading.task_executor import LoadingTaskExecutor
+    from app.core.loading.task_manager import LoadingTaskManager
     from app.core.path_planning.path_task_executor import PathTaskExecutor
     from app.core.path_planning.task_manager import PathTaskManager
     from app.core.plc.sync_service import PlcSyncService
@@ -30,6 +32,8 @@ class SimulationWorld:
         self.lock = threading.RLock()
         self.path_task_manager: PathTaskManager | None = None
         self.path_task_executor: PathTaskExecutor | None = None
+        self.loading_task_manager: LoadingTaskManager | None = None
+        self.loading_task_executor: LoadingTaskExecutor | None = None
         self.plc_sync_service: PlcSyncService | None = None
         self._initial_axis_values = {
             axis_id: axis.current for axis_id, axis in self.loader.axes.items()
@@ -41,13 +45,29 @@ class SimulationWorld:
             if actual_dt < 0:
                 raise ValueError("dt cannot be negative")
             if not self.paused:
+                if self.loading_task_executor is not None:
+                    self.loading_task_executor.before_step(actual_dt)
+            if not self.paused:
                 if self.path_task_executor is not None:
                     self.path_task_executor.before_step()
                 if not self.paused:
-                    self.loader.update(actual_dt)
-                    self.sim_time += actual_dt
+                    motion_scale = (
+                        self.loading_task_manager.motion_scale()
+                        if self.loading_task_manager is not None
+                        else 1.0
+                    )
+                    motion_dt = actual_dt * motion_scale
+                    self.loader.update(motion_dt)
+                    self.sim_time += motion_dt
                     if self.path_task_executor is not None:
                         self.path_task_executor.after_step()
+                    if self.loading_task_executor is not None:
+                        self.loading_task_executor.after_step(
+                            actual_dt,
+                            motion_dt,
+                        )
+                elif self.loading_task_executor is not None:
+                    self.loading_task_executor.after_step(0.0, 0.0)
             snapshot = self.get_snapshot()
             if self.plc_sync_service is not None:
                 self.plc_sync_service.publish_snapshot(
@@ -66,6 +86,8 @@ class SimulationWorld:
 
     def reset(self, initial_state: dict[str, float] | None = None) -> None:
         with self.lock:
+            if self.loading_task_manager is not None:
+                self.loading_task_manager.on_simulation_reset()
             if self.path_task_manager is not None:
                 self.path_task_manager.on_simulation_reset()
             self.sim_time = 0.0
@@ -76,6 +98,11 @@ class SimulationWorld:
         with self.lock:
             self.path_task_manager = manager
             self.path_task_executor = manager.executor
+
+    def attach_loading_task_manager(self, manager: LoadingTaskManager) -> None:
+        with self.lock:
+            self.loading_task_manager = manager
+            self.loading_task_executor = manager.executor
 
     def attach_plc_sync_service(self, service: PlcSyncService) -> None:
         with self.lock:
@@ -106,6 +133,11 @@ class SimulationWorld:
                 path_task=(
                     self.path_task_manager.snapshot_summary()
                     if self.path_task_manager is not None
+                    else None
+                ),
+                loading_task=(
+                    self.loading_task_manager.snapshot_summary()
+                    if self.loading_task_manager is not None
                     else None
                 ),
             )

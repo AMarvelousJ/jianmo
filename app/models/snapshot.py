@@ -3,6 +3,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 from app.models.axis import AxisState
+from app.models.loading import LoadingTaskSummary
 from app.models.pose import Pose, Vec3
 from app.models.path_planning import PathTaskSummary
 
@@ -72,3 +73,4 @@ class SimulationSnapshot(BaseModel):
     warnings: list[str] = Field(default_factory=list)
     constraints: dict[str, object] = Field(default_factory=dict)
     path_task: PathTaskSummary | None = None
+    loading_task: LoadingTaskSummary | None = None

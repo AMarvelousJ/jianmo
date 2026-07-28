@@ -7,11 +7,13 @@ from fastapi import APIRouter, Depends
 
 from app.api.dependencies import (
     get_grid_transformer,
+    get_loading_task_manager,
     get_path_plan_store,
     get_path_planner,
     get_scene_state,
 )
 from app.api.errors import path_http_exception
+from app.core.loading.task_manager import LoadingTaskManager
 from app.core.path_planning.errors import PathPlanningError
 from app.core.path_planning.grid_transformer import GridTransformer
 from app.core.path_planning.path_planner import PathPlanner
@@ -48,6 +50,7 @@ def preview_path(
     request: GridTargetRequest,
     planner: PathPlanner = Depends(get_path_planner),
     store: PathPlanStore = Depends(get_path_plan_store),
+    loading_manager: LoadingTaskManager = Depends(get_loading_task_manager),
 ) -> PathPlan:
     logger.info(
         json.dumps(
@@ -59,6 +62,7 @@ def preview_path(
         )
     )
     try:
+        loading_manager.ensure_standalone_path_allowed()
         plan = store.put(planner.preview(request))
     except PathPlanningError as error:
         logger.info(

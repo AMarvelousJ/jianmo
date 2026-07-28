@@ -43,6 +43,57 @@
           <button id="reset-button" type="button">复位</button>
         </div>
 
+        <section class="loading-panel" aria-labelledby="loading-panel-title">
+          <header class="loading-panel-header">
+            <div>
+              <p class="loading-kicker">华元503 · 航次2525</p>
+              <h2 id="loading-panel-title">一键装船</h2>
+            </div>
+            <span id="loading-status-badge" class="loading-status-badge" data-status="idle">待开始</span>
+          </header>
+
+          <div class="loading-plan-summary">
+            <strong id="loading-plan-total">52,100 t</strong>
+            <span>三轮 · 12 批 · 演示约 4.5 分钟</span>
+          </div>
+
+          <p class="simulation-notice">仿真演示功能，不连接或控制真实 PLC。</p>
+
+          <button id="loading-start-button" class="loading-start-button" type="button">
+            一键装船
+          </button>
+
+          <div class="loading-actions" aria-label="整船装载任务控制">
+            <button id="loading-pause-button" type="button" disabled>暂停</button>
+            <button id="loading-resume-button" type="button" disabled>继续</button>
+            <button id="loading-cancel-button" type="button" disabled>终止</button>
+            <button id="loading-reset-button" type="button" disabled>重置</button>
+          </div>
+
+          <div class="loading-progress-block">
+            <div class="loading-progress-label">
+              <span id="loading-current-label">等待启动配载流程</span>
+              <strong id="loading-total-readout">0 / 52,100 t</strong>
+            </div>
+            <div
+              id="loading-total-progress"
+              class="loading-progress-track"
+              role="progressbar"
+              aria-label="整船装载进度"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <span></span>
+            </div>
+            <div id="loading-time-readout" class="loading-time-readout">机械 12× · 装载 600×</div>
+          </div>
+
+          <div id="loading-hold-progress" class="loading-hold-progress" aria-label="五舱进度"></div>
+          <ol id="loading-batch-timeline" class="loading-batch-timeline" aria-label="十二批装载时间线"></ol>
+          <div id="loading-message" class="loading-message" role="status" aria-live="polite"></div>
+        </section>
+
         <section class="path-panel" aria-labelledby="path-panel-title">
           <header class="section-header">
             <div>
@@ -117,6 +168,6 @@
       </aside>
     </main>
 
-    <script type="module" src="/app.js?v=20260725-sl15-path-planning-r1"></script>
+    <script type="module" src="/app.js?v=20260728-one-click-loading-r1"></script>
   </body>
 </html>

@@ -16,6 +16,10 @@ const API = {
   pathPreview: "/api/path-plans/preview",
   pathTasks: "/api/path-tasks",
   pathTask: (taskId) => `/api/path-tasks/${encodeURIComponent(taskId)}`,
+  loadingPlan: "/api/loading-plans/current",
+  loadingTasks: "/api/loading-tasks",
+  loadingCurrent: "/api/loading-tasks/current",
+  loadingTask: (taskId) => `/api/loading-tasks/${encodeURIComponent(taskId)}`,
 };
 
 const AXES = [
@@ -63,6 +67,24 @@ const pathTargetReadout = document.querySelector("#path-target-readout");
 const pathStageList = document.querySelector("#path-stage-list");
 const pathMessage = document.querySelector("#path-message");
 const pathStatusBadge = document.querySelector("#path-status-badge");
+const loadingPanel = document.querySelector(".loading-panel");
+const loadingStatusBadge = document.querySelector("#loading-status-badge");
+const loadingPlanTotal = document.querySelector("#loading-plan-total");
+const loadingStartButton = document.querySelector("#loading-start-button");
+const loadingPauseButton = document.querySelector("#loading-pause-button");
+const loadingResumeButton = document.querySelector("#loading-resume-button");
+const loadingCancelButton = document.querySelector("#loading-cancel-button");
+const loadingResetButton = document.querySelector("#loading-reset-button");
+const loadingCurrentLabel = document.querySelector("#loading-current-label");
+const loadingTotalReadout = document.querySelector("#loading-total-readout");
+const loadingTotalProgress = document.querySelector("#loading-total-progress");
+const loadingTimeReadout = document.querySelector("#loading-time-readout");
+const loadingHoldProgress = document.querySelector("#loading-hold-progress");
+const loadingBatchTimeline = document.querySelector("#loading-batch-timeline");
+const loadingMessage = document.querySelector("#loading-message");
+const pathPanel = document.querySelector(".path-panel");
+const coverPanel = document.querySelector(".cover-panel");
+const sceneEditor = document.querySelector(".scene-editor");
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xd6dee5);
@@ -106,13 +128,16 @@ const materials = {
   pathCell: new THREE.LineBasicMaterial({ color: 0xf97316 }),
   pathTarget: new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0x713f12, roughness: 0.35 }),
   pathActual: new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x164e63, roughness: 0.35 }),
+  holdActive: new THREE.MeshStandardMaterial({ color: 0xf97316, emissive: 0x7c2d12, roughness: 0.48 }),
+  coalFlow: new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.92 }),
 };
 
 const staticGroup = new THREE.Group();
 const vesselsGroup = new THREE.Group();
 const loaderGroup = new THREE.Group();
 const pathOverlayGroup = new THREE.Group();
-scene.add(staticGroup, vesselsGroup, loaderGroup, pathOverlayGroup);
+const coalFlowGroup = new THREE.Group();
+scene.add(staticGroup, vesselsGroup, loaderGroup, pathOverlayGroup, coalFlowGroup);
 
 let trajectoryLine = null;
 let trajectoryGeometry = null;
@@ -132,6 +157,13 @@ let selectedColumn = 9;
 let selectedRow = 4;
 let targetMarker = null;
 let actualMarker = null;
+let loadingPlanEnvelope = null;
+let currentLoadingTaskId = null;
+const holdVisuals = new Map();
+let coalFlowMesh = null;
+let coalFlowParticles = [];
+let coalFlowStart = null;
+let coalFlowEnd = null;
 
 function setStatus(message) {
   viewStatus.textContent = message;
@@ -235,6 +267,7 @@ function setupStaticScene(config) {
 
 function renderVessels(sceneData) {
   clearGroup(vesselsGroup);
+  holdVisuals.clear();
 
   for (const vessel of sceneData.vessels ?? []) {
     const group = new THREE.Group();
@@ -267,31 +300,59 @@ function renderVessels(sceneData) {
     );
 
     for (const hold of vessel.holds ?? []) {
-      addHold(group, hold, height);
+      addHold(group, hold, height, vessel.id);
       addHatchCover(group, hold, vessel.cover_type, height);
     }
   }
+  updateLoadingScene(latestSnapshot?.loading_task ?? null);
 }
 
-function addHold(group, hold, vesselHeight) {
+function addHold(group, hold, vesselHeight, vesselId) {
   const x = hold.center_offset_m;
   const top = vesselHeight * 0.5 + 0.22;
   const rimHeight = 0.22;
   const rimWidth = 0.28;
   const length = hold.length_m;
   const width = hold.width_m;
-  addBox(group, new THREE.Vector3(x, top, -width * 0.5), new THREE.Vector3(length, rimHeight, rimWidth), materials.holdRim);
-  addBox(group, new THREE.Vector3(x, top, width * 0.5), new THREE.Vector3(length, rimHeight, rimWidth), materials.holdRim);
-  addBox(group, new THREE.Vector3(x - length * 0.5, top, 0), new THREE.Vector3(rimWidth, rimHeight, width), materials.holdRim);
-  addBox(group, new THREE.Vector3(x + length * 0.5, top, 0), new THREE.Vector3(rimWidth, rimHeight, width), materials.holdRim);
-
-  const fillHeight = 0.18 + hold.fill_level * 0.5;
-  addBox(
+  const rimMeshes = [
+    addBox(group, new THREE.Vector3(x, top, -width * 0.5), new THREE.Vector3(length, rimHeight, rimWidth), materials.holdRim),
+    addBox(group, new THREE.Vector3(x, top, width * 0.5), new THREE.Vector3(length, rimHeight, rimWidth), materials.holdRim),
+    addBox(group, new THREE.Vector3(x - length * 0.5, top, 0), new THREE.Vector3(rimWidth, rimHeight, width), materials.holdRim),
+    addBox(group, new THREE.Vector3(x + length * 0.5, top, 0), new THREE.Vector3(rimWidth, rimHeight, width), materials.holdRim),
+  ];
+  const maxFillHeight = Math.min(2.4, Math.max(1.2, vesselHeight * 0.42));
+  const fillMesh = addBox(
     group,
-    new THREE.Vector3(x, vesselHeight * 0.5 + fillHeight * 0.5 + 0.02, 0),
-    new THREE.Vector3(length * 0.84, fillHeight, width * 0.76),
+    new THREE.Vector3(x, vesselHeight * 0.5 + maxFillHeight * 0.5 + 0.02, 0),
+    new THREE.Vector3(length * 0.84, maxFillHeight, width * 0.76),
     materials.coal,
   );
+  holdVisuals.set(`${vesselId}:${hold.id}`, {
+    vesselId,
+    holdId: hold.id,
+    fillMesh,
+    rimMeshes,
+    vesselHeight,
+    maxFillHeight,
+    baseFillLevel: Number(hold.fill_level ?? 0),
+  });
+  setHoldVisualFill(
+    holdVisuals.get(`${vesselId}:${hold.id}`),
+    Number(hold.fill_level ?? 0),
+  );
+}
+
+function setHoldVisualFill(visual, progress) {
+  if (!visual) {
+    return;
+  }
+  const level = Math.min(1, Math.max(0, Number(progress) || 0));
+  visual.fillMesh.visible = level > 0.001;
+  visual.fillMesh.scale.y = Math.max(0.01, level);
+  visual.fillMesh.position.y =
+    visual.vesselHeight * 0.5
+    + visual.maxFillHeight * Math.max(0.01, level) * 0.5
+    + 0.02;
 }
 
 function addHatchCover(group, hold, coverType, vesselHeight) {
@@ -344,6 +405,448 @@ function addHatchCover(group, hold, coverType, vesselHeight) {
       );
     }
   }
+}
+
+const LOADING_ACTIVE_STATUSES = new Set([
+  "prechecking",
+  "positioning",
+  "loading",
+  "waiting_drainage",
+  "paused",
+  "verifying",
+]);
+const LOADING_TERMINAL_STATUSES = new Set(["completed", "cancelled", "failed"]);
+
+function formatTonsFromKg(value, maximumFractionDigits = 1) {
+  const tons = (Number(value) || 0) / 1000;
+  return new Intl.NumberFormat("zh-CN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits,
+  }).format(tons);
+}
+
+function formatBusinessDuration(seconds) {
+  const value = Number(seconds) || 0;
+  if (value < 3600) {
+    return `${format(value / 60, 1)}min`;
+  }
+  return `${format(value / 3600, 2)}h`;
+}
+
+function setLoadingMessage(message, isError = false) {
+  loadingMessage.textContent = message ?? "";
+  loadingMessage.classList.toggle("error", isError);
+}
+
+function loadingStatusLabel(status) {
+  return {
+    idle: "待开始",
+    prechecking: "预检查",
+    positioning: "定位中",
+    loading: "装载中",
+    waiting_drainage: "排水等待",
+    paused: "已暂停",
+    verifying: "完成核对",
+    completed: "已完成",
+    cancelled: "已终止",
+    failed: "失败",
+  }[status] ?? status;
+}
+
+function planBatches() {
+  return (loadingPlanEnvelope?.plan?.rounds ?? []).flatMap((round) =>
+    (round.batches ?? []).map((batch) => ({
+      ...batch,
+      round_no: round.round_no,
+    })),
+  );
+}
+
+function planHoldProgress() {
+  const batches = planBatches();
+  return Object.entries(loadingPlanEnvelope?.plan?.hold_mapping ?? {}).map(
+    ([holdNo, holdId]) => ({
+      hold_no: holdNo,
+      hold_id: holdId,
+      target_kg: batches
+        .filter((batch) => batch.hold_id === holdId)
+        .reduce((sum, batch) => sum + batch.target_kg, 0),
+      loaded_kg: 0,
+      progress: 0,
+    }),
+  );
+}
+
+function renderLoadingTask(task) {
+  const status = task?.status ?? "idle";
+  currentLoadingTaskId = task?.task_id ?? null;
+  loadingStatusBadge.textContent = loadingStatusLabel(status);
+  loadingStatusBadge.dataset.status = status;
+  loadingPanel.dataset.status = status;
+
+  const targetKg =
+    task?.target_total_kg
+    ?? loadingPlanEnvelope?.plan?.total_target_kg
+    ?? 52100000;
+  const loadedKg = task?.loaded_total_kg ?? 0;
+  const progress = targetKg > 0
+    ? Math.min(1, Math.max(0, loadedKg / targetKg))
+    : 0;
+  loadingTotalReadout.textContent =
+    `${formatTonsFromKg(loadedKg)} / ${formatTonsFromKg(targetKg)} t`;
+  loadingTotalProgress.querySelector("span").style.width = `${progress * 100}%`;
+  loadingTotalProgress.setAttribute("aria-valuenow", String(Math.round(progress * 100)));
+
+  const currentBatch = task?.batch_progress?.find(
+    (item) => item.batch_no === task.current_batch_no,
+  );
+  if (!task) {
+    loadingCurrentLabel.textContent = "等待启动配载流程";
+    loadingTimeReadout.textContent = "机械 12× · 装载 600×";
+    setLoadingMessage(
+      loadingPlanEnvelope?.validation?.valid === false
+        ? "默认配载计划未通过校验，暂不可启动。"
+        : "点击“一键装船”后将自动完成三轮十二批装载。",
+      loadingPlanEnvelope?.validation?.valid === false,
+    );
+  } else if (status === "waiting_drainage") {
+    loadingCurrentLabel.textContent =
+      `首轮完成 · 排水剩余 ${format(task.drainage_remaining_demo_s, 1)}s`;
+    setLoadingMessage("排水等待期间所有运动轴和皮带保持停止。");
+  } else if (status === "completed") {
+    loadingCurrentLabel.textContent = "三轮十二批已全部完成";
+    setLoadingMessage("最终吨位核对通过：52,100 t。");
+  } else if (status === "cancelled") {
+    loadingCurrentLabel.textContent = "装载任务已终止";
+    setLoadingMessage("已保留任务历史和当前模拟货量，可重置运行态。");
+  } else if (status === "failed") {
+    loadingCurrentLabel.textContent =
+      `第 ${task.current_batch_no ?? "-"} 批执行失败`;
+    setLoadingMessage(
+      task.failure_message ?? task.failure_code ?? "整船装载任务失败。",
+      true,
+    );
+  } else if (status === "paused") {
+    loadingCurrentLabel.textContent =
+      `第 ${task.current_round_no ?? "-"} 轮 · 第 ${task.current_batch_no ?? "-"} 批已暂停`;
+    setLoadingMessage(
+      task.failure_message
+        ?? `任务已暂停：${task.pause_reason ?? "等待操作员继续"}`,
+      Boolean(task.failure_code),
+    );
+  } else if (status === "verifying") {
+    loadingCurrentLabel.textContent = "正在核对批次、货舱、轮次和总吨位";
+    setLoadingMessage("装载结束，正在执行整数千克最终核对。");
+  } else {
+    const phase = status === "loading" ? "装载" : "定位";
+    loadingCurrentLabel.textContent =
+      `第 ${task.current_round_no ?? "-"} 轮 · 第 ${task.current_batch_no ?? "-"} 批`
+      + `${currentBatch ? ` · ${currentBatch.hold_no}` : ""} ${phase}`;
+    setLoadingMessage(
+      status === "loading"
+        ? `皮带 4.8 m/s · 当前批次 ${formatTonsFromKg(currentBatch?.loaded_kg ?? 0)} / ${formatTonsFromKg(currentBatch?.target_kg ?? 0)} t`
+        : "正在执行六阶段安全定位，定位期间皮带保持停止。",
+    );
+  }
+
+  if (task) {
+    loadingTimeReadout.textContent =
+      `演示 ${format(task.demo_elapsed_s, 1)}s`
+      + ` · 业务 ${formatBusinessDuration(task.logical_business_s)}`
+      + ` · 机械 ${format(task.motion_scale, 0)}×`
+      + ` · 装载 ${format(task.loading_scale, 0)}×`;
+  }
+
+  renderLoadingHolds(task, currentBatch?.hold_id ?? null);
+  renderLoadingTimeline(task);
+  updateLoadingButtons(task);
+  updateLoadingScene(task);
+  updateLoadingControlLocks(task);
+}
+
+function renderLoadingHolds(task, activeHoldId) {
+  loadingHoldProgress.innerHTML = "";
+  const holds = task?.hold_progress ?? planHoldProgress();
+  for (const hold of holds) {
+    const progress = hold.target_kg > 0
+      ? Math.min(1, hold.loaded_kg / hold.target_kg)
+      : 0;
+    const card = document.createElement("article");
+    card.className = "loading-hold-card";
+    card.classList.toggle("active", hold.hold_id === activeHoldId);
+    card.innerHTML = `
+      <strong>${hold.hold_no}</strong>
+      <span>${formatTonsFromKg(hold.loaded_kg, 1)} / ${formatTonsFromKg(hold.target_kg, 0)}t</span>
+      <div class="loading-hold-bar" aria-hidden="true"><i style="width:${progress * 100}%"></i></div>
+    `;
+    card.title = `${hold.hold_no}（${hold.hold_id}）`;
+    loadingHoldProgress.appendChild(card);
+  }
+}
+
+function renderLoadingTimeline(task) {
+  loadingBatchTimeline.innerHTML = "";
+  const batches = task?.batch_progress ?? planBatches().map((batch) => ({
+    ...batch,
+    status: "pending",
+  }));
+  for (const batch of batches) {
+    const item = document.createElement("li");
+    item.className = batch.status ?? "pending";
+    item.textContent = String(batch.batch_no);
+    item.title =
+      `第 ${batch.batch_no} 批 · ${batch.hold_no}`
+      + ` · ${formatTonsFromKg(batch.target_kg, 0)} t`;
+    loadingBatchTimeline.appendChild(item);
+  }
+}
+
+function updateLoadingButtons(task) {
+  const status = task?.status ?? "idle";
+  const validPlan = loadingPlanEnvelope?.validation?.valid !== false;
+  const active = LOADING_ACTIVE_STATUSES.has(status);
+  loadingStartButton.disabled = Boolean(task) || !validPlan;
+  loadingStartButton.textContent =
+    active
+      ? "装船流程执行中"
+      : status === "completed"
+        ? "装船已完成"
+        : status === "failed" || status === "cancelled"
+          ? "请先重置任务"
+          : "一键装船";
+  loadingPauseButton.disabled = !active || status === "paused";
+  loadingResumeButton.disabled = status !== "paused";
+  loadingCancelButton.disabled = !active;
+  loadingResetButton.disabled = !LOADING_TERMINAL_STATUSES.has(status);
+}
+
+function updateLoadingControlLocks(task) {
+  const locked = Boolean(task && LOADING_ACTIVE_STATUSES.has(task.status));
+  for (const section of [pathPanel, axisControls, coverPanel, sceneEditor]) {
+    section.dataset.loadingLocked = locked ? "true" : "false";
+  }
+  if (locked) {
+    for (const control of pathPanel.querySelectorAll("button, input, select")) {
+      control.disabled = true;
+    }
+    for (const control of axisControls.querySelectorAll("button, input, select")) {
+      control.disabled = true;
+    }
+    for (const control of coverPanel.querySelectorAll("button, input, select")) {
+      control.disabled = true;
+    }
+    sceneJson.disabled = true;
+    applySceneButton.disabled = true;
+    return;
+  }
+  sceneJson.disabled = false;
+  applySceneButton.disabled = false;
+  applyCoversButton.disabled = false;
+  for (const control of coverPanel.querySelectorAll("input, select")) {
+    control.disabled = false;
+  }
+  for (const control of axisControls.querySelectorAll("button, input, select")) {
+    control.disabled = false;
+  }
+  const standalonePath =
+    latestSnapshot?.path_task?.owner_kind === "standalone"
+      ? latestSnapshot.path_task
+      : null;
+  updatePathButtons(standalonePath);
+}
+
+function updateLoadingScene(task) {
+  const targetVesselId = loadingPlanEnvelope?.plan?.vessel_id;
+  const holdProgress = new Map(
+    (task?.hold_progress ?? []).map((item) => [item.hold_id, item]),
+  );
+  const activeBatch = task?.batch_progress?.find(
+    (item) => item.batch_no === task.current_batch_no,
+  );
+  for (const visual of holdVisuals.values()) {
+    const isTargetVessel = Boolean(targetVesselId && visual.vesselId === targetVesselId);
+    const item = holdProgress.get(visual.holdId);
+    const level = isTargetVessel
+      ? (item && item.target_kg > 0 ? item.loaded_kg / item.target_kg : 0)
+      : visual.baseFillLevel;
+    setHoldVisualFill(visual, level);
+    const active =
+      isTargetVessel
+      && activeBatch?.hold_id === visual.holdId
+      && Boolean(task && LOADING_ACTIVE_STATUSES.has(task.status));
+    for (const rim of visual.rimMeshes) {
+      rim.material = active ? materials.holdActive : materials.holdRim;
+    }
+  }
+}
+
+function ensureCoalFlowObjects() {
+  if (coalFlowMesh) {
+    return;
+  }
+  coalFlowMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.1, 0.18, 1, 10),
+    materials.coalFlow,
+  );
+  coalFlowMesh.castShadow = true;
+  coalFlowGroup.add(coalFlowMesh);
+  const particleGeometry = new THREE.SphereGeometry(0.11, 7, 5);
+  for (let index = 0; index < 7; index += 1) {
+    const particle = new THREE.Mesh(particleGeometry, materials.coalFlow);
+    particle.userData.flowOffset = index / 7;
+    coalFlowParticles.push(particle);
+    coalFlowGroup.add(particle);
+  }
+  coalFlowGroup.visible = false;
+}
+
+function updateCoalFlow(snapshot) {
+  ensureCoalFlowObjects();
+  const task = snapshot.loading_task;
+  const visible = Boolean(task?.status === "loading" && snapshot.belt_state.running);
+  coalFlowGroup.visible = visible;
+  if (!visible) {
+    coalFlowStart = null;
+    coalFlowEnd = null;
+    return;
+  }
+  coalFlowStart = worldToThree(snapshot.key_points.discharge_point);
+  coalFlowEnd = coalFlowStart.clone();
+  coalFlowEnd.y -= 2.5;
+  const direction = coalFlowEnd.clone().sub(coalFlowStart);
+  const length = direction.length();
+  coalFlowMesh.position.copy(coalFlowStart).add(coalFlowEnd).multiplyScalar(0.5);
+  coalFlowMesh.scale.set(1, length, 1);
+  coalFlowMesh.quaternion.setFromUnitVectors(
+    new THREE.Vector3(0, 1, 0),
+    direction.normalize(),
+  );
+}
+
+function animateCoalFlow(timeMs) {
+  if (!coalFlowGroup.visible || !coalFlowStart || !coalFlowEnd) {
+    return;
+  }
+  const base = (timeMs / 520) % 1;
+  for (const particle of coalFlowParticles) {
+    const progress = (base + particle.userData.flowOffset) % 1;
+    particle.position.lerpVectors(coalFlowStart, coalFlowEnd, progress);
+    const scale = 0.65 + Math.sin(progress * Math.PI) * 0.45;
+    particle.scale.setScalar(scale);
+  }
+}
+
+async function loadLoadingPlan() {
+  try {
+    loadingPlanEnvelope = await requestJson(API.loadingPlan);
+  } catch (error) {
+    loadingPlanEnvelope = {
+      plan: null,
+      validation: { valid: false, errors: [{ message: error.message }] },
+    };
+    renderLoadingTask(null);
+    setLoadingMessage(
+      `一键装船入口已禁用：${error.message}`,
+      true,
+    );
+    return null;
+  }
+  const totalKg = loadingPlanEnvelope.plan.total_target_kg;
+  loadingPlanTotal.textContent = `${formatTonsFromKg(totalKg, 0)} t`;
+  renderLoadingTask(null);
+  return loadingPlanEnvelope;
+}
+
+async function loadCurrentLoadingTask() {
+  if (!loadingPlanEnvelope?.plan) {
+    renderLoadingTask(null);
+    return null;
+  }
+  const task = await requestJson(API.loadingCurrent);
+  renderLoadingTask(task);
+  if (task?.status === "paused") {
+    running = false;
+  }
+  return task;
+}
+
+async function startLoadingTask() {
+  if (!loadingPlanEnvelope?.validation?.valid) {
+    throw new Error("配载计划尚未通过校验。");
+  }
+  const requestId =
+    globalThis.crypto?.randomUUID?.() ?? `loading-web-${Date.now()}`;
+  const task = await requestJson(API.loadingTasks, {
+    method: "POST",
+    body: JSON.stringify({
+      request_id: requestId,
+      plan_id: loadingPlanEnvelope.plan.plan_id,
+      mode: "demo",
+    }),
+  });
+  currentPlan = null;
+  currentTaskId = null;
+  renderPathOverlay(null);
+  currentLoadingTaskId = task.task_id;
+  running = true;
+  runButton.classList.add("primary");
+  pauseButton.classList.remove("primary");
+  renderLoadingTask(task);
+}
+
+async function pauseLoadingTask() {
+  if (!currentLoadingTaskId) {
+    return;
+  }
+  const task = await requestJson(
+    `${API.loadingTask(currentLoadingTaskId)}/pause`,
+    { method: "POST" },
+  );
+  running = false;
+  renderLoadingTask(task);
+}
+
+async function resumeLoadingTask() {
+  if (!currentLoadingTaskId) {
+    return;
+  }
+  const task = await requestJson(
+    `${API.loadingTask(currentLoadingTaskId)}/resume`,
+    { method: "POST" },
+  );
+  running = true;
+  renderLoadingTask(task);
+}
+
+async function cancelLoadingTask() {
+  if (!currentLoadingTaskId) {
+    return;
+  }
+  if (!window.confirm("确定终止当前整船装载任务吗？已装吨位将保留在任务历史中。")) {
+    return;
+  }
+  const task = await requestJson(
+    `${API.loadingTask(currentLoadingTaskId)}/cancel`,
+    { method: "POST" },
+  );
+  running = true;
+  renderLoadingTask(task);
+}
+
+async function resetLoadingTask() {
+  if (!currentLoadingTaskId) {
+    return;
+  }
+  if (!window.confirm("确定重置装船运行态和三维货量显示吗？任务历史仍会保留。")) {
+    return;
+  }
+  const response = await requestJson(
+    `${API.loadingTask(currentLoadingTaskId)}/reset`,
+    { method: "POST" },
+  );
+  currentLoadingTaskId = null;
+  renderSnapshot(response.snapshot);
+  renderLoadingTask(null);
 }
 
 function setPathMessage(message, isError = false) {
@@ -739,12 +1242,62 @@ function updatePathFromSnapshot(snapshot) {
     actualMarker.position.copy(worldToThree(snapshot.key_points.discharge_point));
   }
   const task = snapshot.path_task;
+  if (task?.owner_kind === "loading") {
+    renderLoadingPathSummary(task);
+    return;
+  }
   const terminal = task && ["arrived", "failed", "cancelled"].includes(task.status);
   if (task && (!terminal || !currentTaskId || task.task_id === currentTaskId)) {
     if (terminal && !currentTaskId) {
       return;
     }
     renderPathTask(snapshot.path_task);
+  }
+}
+
+function renderLoadingPathSummary(task) {
+  setPathStatus(task.status);
+  pathStageList.innerHTML = "";
+  for (const [index, stage] of PATH_STAGES.entries()) {
+    const item = document.createElement("li");
+    const stageNumber = index + 1;
+    const completed =
+      task.status === "arrived"
+      || stageNumber < task.stage_index;
+    const isCurrent = task.current_stage === stage.id;
+    const active =
+      ["running", "paused"].includes(task.status)
+      && isCurrent;
+    item.dataset.pathStage = stage.id;
+    item.classList.toggle("complete", completed);
+    item.classList.toggle("active", active);
+    item.classList.toggle("failed", isCurrent && task.status === "failed");
+    item.innerHTML = `
+      <span class="stage-index">${stageNumber}</span>
+      <span>${pathStageLabel(stage.id)}</span>
+      <span class="stage-value">${completed ? "完成" : active ? "当前" : "待执行"}</span>
+    `;
+    pathStageList.appendChild(item);
+  }
+  const point = task.target?.world_point;
+  pathTargetReadout.textContent = point
+    ? `${task.target.vessel_id} / ${task.target.hold_id}`
+      + ` / (${task.target.column},${task.target.row})`
+      + ` · 世界坐标 [${point.map((value) => format(value, 3)).join(", ")}] m`
+    : "整船任务正在准备当前批次路径。";
+  if (task.status === "arrived") {
+    setPathMessage("整船任务从属路径已到位，等待或正在执行本批装载。");
+  } else if (task.status === "paused") {
+    setPathMessage(`整船任务从属路径已暂停：${task.pause_reason ?? "等待恢复"}`);
+  } else if (task.status === "failed") {
+    setPathMessage(
+      `整船任务从属路径失败：${task.failure_code ?? "未知原因"}`,
+      true,
+    );
+  } else {
+    setPathMessage(
+      `整船任务从属定位 · 阶段 ${task.stage_index}/6：${pathStageLabel(task.current_stage)}`,
+    );
   }
 }
 
@@ -781,6 +1334,8 @@ function renderSnapshot(snapshot) {
   updateTrajectory(snapshot);
   updateReadouts(snapshot);
   updatePathFromSnapshot(snapshot);
+  renderLoadingTask(snapshot.loading_task);
+  updateCoalFlow(snapshot);
   window.__shiploaderDiagnostics = {
     ...shiploaderRig.getDiagnostics(),
     rendererCalls: renderer.info.render.calls,
@@ -1117,7 +1672,8 @@ function resizeRenderer() {
   orthographicCamera.updateProjectionMatrix();
 }
 
-function renderLoop() {
+function renderLoop(timeMs) {
+  animateCoalFlow(timeMs);
   controls.update();
   renderer.render(scene, activeCamera);
 }
@@ -1180,6 +1736,21 @@ async function init() {
   runButton.addEventListener("click", () => runSimulation().catch((error) => setStatus(error.message)));
   pauseButton.addEventListener("click", () => pauseSimulation().catch((error) => setStatus(error.message)));
   resetButton.addEventListener("click", () => resetSimulation().catch((error) => setStatus(error.message)));
+  loadingStartButton.addEventListener("click", () => {
+    startLoadingTask().catch((error) => setLoadingMessage(error.message, true));
+  });
+  loadingPauseButton.addEventListener("click", () => {
+    pauseLoadingTask().catch((error) => setLoadingMessage(error.message, true));
+  });
+  loadingResumeButton.addEventListener("click", () => {
+    resumeLoadingTask().catch((error) => setLoadingMessage(error.message, true));
+  });
+  loadingCancelButton.addEventListener("click", () => {
+    cancelLoadingTask().catch((error) => setLoadingMessage(error.message, true));
+  });
+  loadingResetButton.addEventListener("click", () => {
+    resetLoadingTask().catch((error) => setLoadingMessage(error.message, true));
+  });
   applySceneButton.addEventListener("click", () => applySceneJson().catch((error) => setStatus(error.message)));
   applyCoversButton.addEventListener("click", () => applyCoverControls().catch((error) => setStatus(error.message)));
   pathVesselSelect.addEventListener("change", () => {
@@ -1228,6 +1799,8 @@ async function init() {
     }
   });
 
+  await loadLoadingPlan();
+  await loadCurrentLoadingTask();
   await loadScene();
   const snapshot = await requestJson(API.state);
   createAxisControls(snapshot);

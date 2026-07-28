@@ -1,0 +1,4388 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- |============================================================================= -->
+<!-- |	Copyright (C) 2017 Rockwell Software. All rights reserved.					-->
+<!-- |																				-->
+<!-- |  XML Schema for validating the Graphics XML files that are to be imported	-->
+<!-- |	into RSView SE version 10.00.												-->
+<!-- |	Warning:																	-->
+<!-- |		Changing this file will cause importing Graphics XML files to fail.		-->
+<!-- |																				-->
+<!-- |============================================================================= -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:complexType name="groupType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:choice minOccurs="0" maxOccurs="unbounded">
+						<xs:element name="group" type="groupType" />
+						<xs:element name="text" type="textDrawingObjectType">
+							<xs:unique name="groupTextObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="image" type="SEImageDrawingObjectType" />
+						<xs:element name="panel" type="SEPanelDrawingObjectType" />
+						<xs:element name="arc" type="angleDrawingObjectType">
+							<xs:unique name="groupArcObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="ellipse" type="rotationDrawingObjectType">
+							<xs:unique name="groupEllipseObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="freehand" type="pathDrawingObjectType">
+							<xs:unique name="groupFreehandObjectKeys">
+								<xs:selector xpath="freehandObjectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="line" type="lineDrawingObjectType">
+							<xs:unique name="groupLineObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="polygon" type="polygonDrawingObjectType">
+							<xs:unique name="groupPolygonObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="polyPolygon" type="polyPolygonDrawingObjectType">
+							<xs:unique name="groupPolyPolygonObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="polyline" type="pathDrawingObjectType">
+							<xs:unique name="groupPolylineObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="rectangle" type="drawingObjectType">
+							<xs:unique name="groupRectangleObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="roundedRectangle" type="roundedRectangleDrawingObjectType">
+							<xs:unique name="groupRoundedRectangleObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="wedge" type="angleDrawingObjectType">
+							<xs:unique name="groupWedgeObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="button" type="buttonType" />
+						<xs:element name="momentaryButton" type="SEMomentaryButtonType">
+							<xs:unique name="groupMomentaryButtonStateId">
+								<xs:selector xpath="states/state" />
+								<xs:field xpath="@stateId" />
+							</xs:unique>
+							<xs:unique name="groupMomentaryButtonConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="maintainedButton" type="SEMaintainedButtonType">
+							<xs:unique name="groupMaintainedButtonStateId">
+								<xs:selector xpath="states/state" />
+								<xs:field xpath="@stateId" />
+							</xs:unique>
+							<xs:unique name="groupMaintainedButtonConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="latchedButton" type="SELatchedButtonType">
+							<xs:unique name="groupLatchedButtonStateId">
+								<xs:selector xpath="states/state" />
+								<xs:field xpath="@stateId" />
+							</xs:unique>
+							<xs:unique name="groupLatchedButtonConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="multistateButton" type="SEMultistateButtonType">
+							<xs:unique name="groupMultistateButtonStateId">
+								<xs:selector xpath="states/state" />
+								<xs:field xpath="@stateId" />
+							</xs:unique>
+							<xs:unique name="groupMultistateButtonConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="interlockedButton" type="SEInterlockedButtonType">
+							<xs:unique name="groupInterlockedButtonStateId">
+								<xs:selector xpath="states/state" />
+								<xs:field xpath="@stateId" />
+							</xs:unique>
+							<xs:unique name="groupInterlockedButtonConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="rampButton" type="SERampButtonType">
+							<xs:unique name="groupRampButtonConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="numericDisplay" type="numericDisplayType">
+							<xs:unique name="groupNumericDisplayObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+							<xs:unique name="groupNumericDisplayConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="numericInput" type="numericInputType">
+							<xs:unique name="groupNumericInputObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+							<xs:unique name="groupNumericInputConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="stringDisplay" type="stringDisplayType">
+							<xs:unique name="groupStringDisplayObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+							<xs:unique name="groupStringDisplayConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="stringInput" type="stringInputType">
+							<xs:unique name="groupStringInputObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+							<xs:unique name="groupStringInputConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="multistateIndicator" type="SEMultistateIndicatorType">
+							<xs:unique name="groupMultistateIndicatorStateId">
+								<xs:selector xpath="states/state" />
+								<xs:field xpath="@stateId" />
+							</xs:unique>
+							<xs:unique name="groupMultistateIndicatorConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="symbol" type="SESymbolIndicatorType">
+							<xs:unique name="groupSymbolIndicatorStateId">
+								<xs:selector xpath="states/state" />
+								<xs:field xpath="@stateId" />
+							</xs:unique>
+							<xs:unique name="groupSymbolIndicatorConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="listIndicator" type="SEListIndicatorType">
+							<xs:unique name="groupListIndicatorStateId">
+								<xs:selector xpath="states/state" />
+								<xs:field xpath="@stateId" />
+							</xs:unique>
+							<xs:unique name="groupListIndicatorConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="barGraph" type="SEBarGraphType">
+							<xs:unique name="groupBarGraphConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+							<xs:unique name="groupBarGraphThresholdIndex">
+								<xs:selector xpath="threshold" />
+								<xs:field xpath="@thresholdIndex" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="gauge" type="SEGaugeType">
+							<xs:unique name="groupGaugeConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+							<xs:unique name="groupGaugeThresholdIndex">
+								<xs:selector xpath="threshold" />
+								<xs:field xpath="@thresholdIndex" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="scale" type="SEScaleType" />
+						<xs:element name="backspaceKey" type="SEKeyButtonType" />
+						<xs:element name="endKey" type="SEKeyButtonType" />
+						<xs:element name="enterKey" type="SEKeyButtonType" />
+						<xs:element name="homeKey" type="SEKeyButtonType" />
+						<xs:element name="moveLeftKey" type="SETimedKeyButtonType" />
+						<xs:element name="moveRightKey" type="SETimedKeyButtonType" />
+						<xs:element name="moveDownKey" type="SETimedKeyButtonType" />
+						<xs:element name="moveUpKey" type="SETimedKeyButtonType" />
+						<xs:element name="pageDownKey" type="SETimedKeyButtonType" />
+						<xs:element name="pageUpKey" type="SETimedKeyButtonType" />
+						<xs:element name="arrow" type="arrowType">
+							<xs:unique name="groupArrowObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+							<xs:unique name="groupArrowConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="controlListSelector" type="SEControlListSelectorType">
+							<xs:unique name="groupControlListSelectorStateId">
+								<xs:selector xpath="states/state" />
+								<xs:field xpath="@stateId" />
+							</xs:unique>
+							<xs:unique name="groupControlListSelectorConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="pilotedControlListSelector" type="SEPilotedControlListSelectorType">
+							<xs:unique name="groupPilotedControlListSelectorStateId">
+								<xs:selector xpath="states/state" />
+								<xs:field xpath="@stateId" />
+							</xs:unique>
+							<xs:unique name="groupPilotedControlListSelectorConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="tagLabel" type="tagLabelType">
+							<xs:unique name="groupTagLabelObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="displayListSelector" type="SEDisplayListSelectorType">
+							<xs:unique name="groupDisplayListSelectorStateId">
+								<xs:selector xpath="states/state" />
+								<xs:field xpath="@stateId" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="localMessageDisplay" type="SELocalMessageDisplayType">
+							<xs:unique name="groupLocalMessageDisplayConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="recipe" type="recipeType">
+							<xs:unique name="groupRecipeObjectKeys">
+								<xs:selector xpath="objectKeys/key" />
+								<xs:field xpath="@key" />
+								<xs:field xpath="@controlModifier" />
+								<xs:field xpath="@shiftModifier" />
+							</xs:unique>
+						</xs:element>
+						<xs:element name="timeAndDateDisplay" type="SETimeAndDateDisplayType" />
+                                                <xs:element name="navigationButton" type="SENavigationButtonType"/>
+						<xs:element name="activeX" type="SEActiveXObjectType">
+							<xs:unique name="groupActiveXConnectionName">
+								<xs:selector xpath="connections/connection" />
+								<xs:field xpath="@name" />
+							</xs:unique>
+						</xs:element>
+					</xs:choice>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0">
+						<xs:unique name="groupObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="parameters" type="parametersType" minOccurs="0">
+						<xs:unique name="groupParameterName">
+							<xs:selector xpath="parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="gfx">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="displaySettings" type="displaySettingsType" minOccurs="0" />
+				<xs:element name="displayKeys" type="displayKeysType" minOccurs="0" />
+				<xs:choice minOccurs="0" maxOccurs="unbounded">
+					<xs:element name="group" type="groupType" />
+					<xs:element name="text" type="textDrawingObjectType">
+						<xs:unique name="textObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="textParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="image" type="SEImageDrawingObjectType">
+						<xs:unique name="imageParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="panel" type="SEPanelDrawingObjectType">
+						<xs:unique name="panelParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="arc" type="angleDrawingObjectType">
+						<xs:unique name="arcObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="arcParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="ellipse" type="rotationDrawingObjectType">
+						<xs:unique name="ellipseObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="ellipseParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="freehand" type="pathDrawingObjectType">
+						<xs:unique name="freehandObjectKeys">
+							<xs:selector xpath="freehandObjectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="freehandParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="line" type="lineDrawingObjectType">
+						<xs:unique name="lineObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="lineParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="polygon" type="polygonDrawingObjectType">
+						<xs:unique name="polygonObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="polygonParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="polyPolygon" type="polyPolygonDrawingObjectType">
+						<xs:unique name="polyPolygonObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="polyPolygonParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="polyline" type="pathDrawingObjectType">
+						<xs:unique name="polylineObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="polylineParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="rectangle" type="drawingObjectType">
+						<xs:unique name="rectangleObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="rectangleParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="roundedRectangle" type="roundedRectangleDrawingObjectType">
+						<xs:unique name="roundedRectangleObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="roundedRectangleParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="wedge" type="angleDrawingObjectType">
+						<xs:unique name="wedgeObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="wedgeParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="button" type="buttonType">
+						<xs:unique name="buttonParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="momentaryButton" type="SEMomentaryButtonType">
+						<xs:unique name="momentaryButtonStateId">
+							<xs:selector xpath="states/state" />
+							<xs:field xpath="@stateId" />
+						</xs:unique>
+						<xs:unique name="momentaryButtonConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="momentaryButtonParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="maintainedButton" type="SEMaintainedButtonType">
+						<xs:unique name="maintainedButtonStateId">
+							<xs:selector xpath="states/state" />
+							<xs:field xpath="@stateId" />
+						</xs:unique>
+						<xs:unique name="maintainedButtonConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="maintainedButtonParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="latchedButton" type="SELatchedButtonType">
+						<xs:unique name="latchedButtonStateId">
+							<xs:selector xpath="states/state" />
+							<xs:field xpath="@stateId" />
+						</xs:unique>
+						<xs:unique name="latchedButtonConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="latchedButtonParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="multistateButton" type="SEMultistateButtonType">
+						<xs:unique name="multistateButtonStateId">
+							<xs:selector xpath="states/state" />
+							<xs:field xpath="@stateId" />
+						</xs:unique>
+						<xs:unique name="multistateButtonConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="multistateButtonParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="interlockedButton" type="SEInterlockedButtonType">
+						<xs:unique name="interlockedButtonStateId">
+							<xs:selector xpath="states/state" />
+							<xs:field xpath="@stateId" />
+						</xs:unique>
+						<xs:unique name="interlockedButtonConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="interlockedButtonParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="rampButton" type="SERampButtonType">
+						<xs:unique name="rampButtonConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="rampButtonParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="numericDisplay" type="numericDisplayType">
+						<xs:unique name="numericDisplayObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="numericDisplayConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="numericDisplayParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="numericInput" type="numericInputType">
+						<xs:unique name="numericInputObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="numericInputConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="numericInputParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="stringDisplay" type="stringDisplayType">
+						<xs:unique name="stringDisplayObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="stringDisplayConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="stringDisplayParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="stringInput" type="stringInputType">
+						<xs:unique name="stringInputObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="stringInputConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="stringInputParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="multistateIndicator" type="SEMultistateIndicatorType">
+						<xs:unique name="multistateIndicatorStateId">
+							<xs:selector xpath="states/state" />
+							<xs:field xpath="@stateId" />
+						</xs:unique>
+						<xs:unique name="multistateIndicatorConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="multistateIndicatorParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="symbol" type="SESymbolIndicatorType">
+						<xs:unique name="symbolIndicatorStateId">
+							<xs:selector xpath="states/state" />
+							<xs:field xpath="@stateId" />
+						</xs:unique>
+						<xs:unique name="symbolConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="symbolParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="listIndicator" type="SEListIndicatorType">
+						<xs:unique name="listIndicatorStateId">
+							<xs:selector xpath="states/state" />
+							<xs:field xpath="@stateId" />
+						</xs:unique>
+						<xs:unique name="listIndicatorConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="listIndicatorParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="barGraph" type="SEBarGraphType">
+						<xs:unique name="barGraphConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="barGraphThresholdIndex">
+							<xs:selector xpath="threshold" />
+							<xs:field xpath="@thresholdIndex" />
+						</xs:unique>
+						<xs:unique name="barGraphParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="gauge" type="SEGaugeType">
+						<xs:unique name="gaugeConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="gaugeThresholdIndex">
+							<xs:selector xpath="threshold" />
+							<xs:field xpath="@thresholdIndex" />
+						</xs:unique>
+						<xs:unique name="gaugeParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="scale" type="SEScaleType">
+						<xs:unique name="scaleParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="backspaceKey" type="SEKeyButtonType">
+						<xs:unique name="backspaceKeyParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="endKey" type="SEKeyButtonType">
+						<xs:unique name="endKeyParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="enterKey" type="SEKeyButtonType">
+						<xs:unique name="enterKeyParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="homeKey" type="SEKeyButtonType">
+						<xs:unique name="homeKeyParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="moveLeftKey" type="SETimedKeyButtonType">
+						<xs:unique name="moveLeftKeyParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="moveRightKey" type="SETimedKeyButtonType">
+						<xs:unique name="moveRightKeyParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="moveDownKey" type="SETimedKeyButtonType">
+						<xs:unique name="moveDownKeyParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="moveUpKey" type="SETimedKeyButtonType">
+						<xs:unique name="moveUpKeyParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="pageDownKey" type="SETimedKeyButtonType">
+						<xs:unique name="pageDownKeyParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="pageUpKey" type="SETimedKeyButtonType">
+						<xs:unique name="pageUpKeyParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="arrow" type="arrowType">
+						<xs:unique name="arrowObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="arrowConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="arrowParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="controlListSelector" type="SEControlListSelectorType">
+						<xs:unique name="controlListSelectorStateId">
+							<xs:selector xpath="states/state" />
+							<xs:field xpath="@stateId" />
+						</xs:unique>
+						<xs:unique name="controlListSelectorConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="controlListSelectorParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="pilotedControlListSelector" type="SEPilotedControlListSelectorType">
+						<xs:unique name="pilotedControlListSelectorStateId">
+							<xs:selector xpath="states/state" />
+							<xs:field xpath="@stateId" />
+						</xs:unique>
+						<xs:unique name="pilotedControlListSelectorConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="pilotedControlListSelectorParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="tagLabel" type="tagLabelType">
+						<xs:unique name="tagLabelObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="tagLabelParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="displayListSelector" type="SEDisplayListSelectorType">
+						<xs:unique name="displayListSelectorStateId">
+							<xs:selector xpath="states/state" />
+							<xs:field xpath="@stateId" />
+						</xs:unique>
+						<xs:unique name="displayListSelectorParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="localMessageDisplay" type="SELocalMessageDisplayType">
+						<xs:unique name="localMessageDisplayConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="localMessageDisplayParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="recipe" type="recipeType">
+						<xs:unique name="recipeObjectKeys">
+							<xs:selector xpath="objectKeys/key" />
+							<xs:field xpath="@key" />
+							<xs:field xpath="@controlModifier" />
+							<xs:field xpath="@shiftModifier" />
+						</xs:unique>
+						<xs:unique name="recipeParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="navigationButton" type="SENavigationButtonType">
+						<xs:unique name="SENavigationButtonParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>	
+					<xs:element name="timeAndDateDisplay" type="SETimeAndDateDisplayType">
+						<xs:unique name="timeAndDateDisplayParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+					<xs:element name="activeX" type="SEActiveXObjectType">
+						<xs:unique name="activeXConnectionName">
+							<xs:selector xpath="connections/connection" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+						<xs:unique name="activeXParameterName">
+							<xs:selector xpath="parameters/parameter" />
+							<xs:field xpath="@name" />
+						</xs:unique>
+					</xs:element>
+				</xs:choice>
+				<xs:element name="vbaProject" type="vbaProjectType" maxOccurs="1" minOccurs="0"/>  <!--Add by HMA1-->   
+			</xs:sequence>
+			<xs:attribute ref="vba" />
+			<xs:attribute ref="exposeToVba" />
+		</xs:complexType>
+		<xs:unique name="displayKeys">
+			<xs:selector xpath="displayKeys/key" />
+			<xs:field xpath="@key" />
+			<xs:field xpath="@controlModifier" />
+			<xs:field xpath="@shiftModifier" />
+		</xs:unique>
+	</xs:element>
+	<!-- Base objects -->
+	<xs:complexType name="objectBaseType">
+		<xs:annotation>
+			<xs:documentation>Base type for all objects.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute ref="name" />
+		<xs:attribute ref="wallpaper" />
+		<xs:attribute ref="visible" />
+		<xs:attribute ref="width" />
+		<xs:attribute ref="height" />
+		<xs:attribute ref="left" />
+		<xs:attribute ref="top" />
+		<xs:attributeGroup ref="referenceObjectProperties" />
+	</xs:complexType>
+	<xs:complexType name="parameterType">
+		<xs:attribute name="name" type="parameterNameType" use="required" />
+		<xs:attribute name="value" type="parameterValueType" />
+		<xs:attribute name="description" type="xs:string" />
+	</xs:complexType>
+	<xs:complexType name="parametersType">
+		<xs:sequence>
+			<xs:element name="parameter" type="parameterType" maxOccurs="1000" />
+		</xs:sequence>
+	</xs:complexType>
+	<!-- Drawing objects -->
+	<xs:complexType name="basicDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="lineProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+				<xs:attribute ref="foreColor" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="basicRotationDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicDrawingObjectType">
+				<xs:sequence>
+					<xs:choice minOccurs="0">
+						<xs:element name="rotation" type="rotationElementType" minOccurs="0" />
+						<xs:element name="transform" type="transformType" minOccurs="0" />
+					</xs:choice>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="basicPathDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="lineProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute ref="path" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="basicPolygonDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="lineProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute name="path" type="polygonType" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="basicPolyPolygonDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="innerPolygon" type="innerPolygonType" minOccurs="1" maxOccurs="unbounded" />
+				</xs:sequence>
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="lineProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+				<xs:attribute ref="foreColor" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="basicLineDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="lineProperties" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute ref="line" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="basicAngleDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicDrawingObjectType">
+				<xs:sequence>
+					<xs:choice minOccurs="0">
+						<xs:element name="rotation" type="rotationElementType" minOccurs="0" />
+						<xs:element name="transform" type="transformType" minOccurs="0" />
+					</xs:choice>
+				</xs:sequence>
+				<xs:attribute ref="startAngle" />
+				<xs:attribute ref="endAngle" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="rotationElementType">
+		<xs:attribute ref="angle" />
+	</xs:complexType>
+	<xs:complexType name="transformType">
+		<xs:attribute ref="scaleWidth" use="required" />
+		<xs:attribute ref="scaleHeight" use="required" />
+		<xs:attribute ref="shearWidth" use="required" />
+		<xs:attribute ref="shearHeight" use="required" />
+		<xs:attribute ref="offsetWidth" use="required" />
+		<xs:attribute ref="offsetHeight" use="required" />
+	</xs:complexType>
+  
+  <xs:complexType name="encryptedDataType"> <!--Add by HMA1-->
+    <xs:simpleContent>
+      <xs:extension base="xs:base64Binary">
+        <xs:attribute name="hash" type="hashValueType" use="required"/>
+      </xs:extension>
+     </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="vbaItemType"> <!--Add by HMA1-->
+	  <xs:sequence>
+		  <xs:element name="encryptedData" type="encryptedDataType" minOccurs="0"/>
+		  <xs:element name="vbaCode" type="vbaCodeType" minOccurs="0"/>
+	  </xs:sequence>
+  </xs:complexType>
+	<xs:complexType name="basicRoundedRectangleDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicRotationDrawingObjectType">
+				<xs:attribute ref="roundingWidth" />
+				<xs:attribute ref="roundingHeight" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="basicTextDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:attribute ref="caption" />
+				<xs:attribute ref="alignment" />
+				<xs:attributeGroup ref="fontScaledProperties" />
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute ref="sizeToFit" />
+				<xs:attribute ref="wordWrap" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="imageDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attribute ref="description" />
+				<xs:attribute ref="imageBackStyle" />
+				<xs:attribute ref="imageBackColor" />
+				<xs:attribute ref="imageColor" />
+				<xs:attribute ref="imageName" />
+				<xs:attribute ref="imageBlink" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="panelDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="blink" />
+				<xs:attribute ref="borderColor" />
+				<xs:attribute ref="borderStyle" />
+				<xs:attribute ref="borderWidth" />
+				<xs:attribute ref="borderUsesBackColor" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="innerPolygonType">
+		<xs:attribute ref="polygon" />
+	</xs:complexType>
+	<!-- Push Buttons -->
+	<xs:complexType name="pushButtonBaseType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="states" type="pushButtonBaseStatesType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="touchMarginProperties" />
+				<xs:attribute ref="audio" />
+				<xs:attribute ref="backStyle" />
+				<xs:attribute ref="borderStyle" />
+				<xs:attribute ref="borderWidth" />
+				<xs:attribute ref="borderUsesBackColor" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="highlightColor" />
+				<xs:attribute ref="shape" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="pushButtonBaseStatesType">
+		<xs:sequence>
+			<xs:element name="state" type="pushButtonBaseStateType" maxOccurs="3" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="pushButtonBaseStateType">
+		<xs:sequence>
+			<xs:element name="caption" type="basicCaptionType" minOccurs="0" />
+			<xs:element name="imageSettings" type="basicImageType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attributeGroup ref="patternProperties" />
+		<xs:attribute ref="backColor" />
+		<xs:attribute ref="blink" />
+		<xs:attribute ref="borderColor" />
+		<xs:attribute name="stateId" type="stateId1Type" use="required" />
+	</xs:complexType>
+	<xs:complexType name="pushButtonValueType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="states" type="pushButtonBaseStatesValuesType" minOccurs="0" maxOccurs="3" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="touchMarginProperties" />
+				<xs:attribute ref="audio" />
+				<xs:attribute ref="backStyle" />
+				<xs:attribute ref="borderStyle" />
+				<xs:attribute ref="borderWidth" />
+				<xs:attribute ref="borderUsesBackColor" />
+                <xs:attribute ref="captionOnBorder" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="highlightColor" />
+				<xs:attribute ref="shape" />
+				<xs:attribute name="currentStateId" type="stateId1Type" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="pushButtonBaseStatesValuesType">
+		<xs:sequence>
+			<xs:element name="state" type="pushButtonBaseStateValueType" maxOccurs="3" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="pushButtonBaseStateValueType">
+		<xs:sequence>
+			<xs:element name="caption" type="basicCaptionType" minOccurs="0" />
+			<xs:element name="imageSettings" type="basicImageType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attributeGroup ref="patternProperties" />
+    <xs:attributeGroup ref="gradientProperties" />
+		<xs:attribute ref="backColor" />
+		<xs:attribute ref="blink" />
+		<xs:attribute ref="borderColor" />
+		<xs:attribute name="value" type="xs:integer" />
+		<xs:attribute name="stateId" type="stateId1Type" use="required" />
+	</xs:complexType>
+	<xs:complexType name="momentaryButtonType">
+		<xs:complexContent>
+			<xs:extension base="pushButtonValueType">
+				<xs:sequence>
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attribute ref="buttonAction" />
+				<xs:attribute ref="holdTime" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="maintainedButtonType">
+		<xs:complexContent>
+			<xs:extension base="pushButtonValueType">
+				<xs:sequence>
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attribute ref="nextStateBasedOn" />
+				<xs:attributeGroup ref="eSignatureProperties" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="latchedButtonType">
+		<xs:complexContent>
+			<xs:extension base="pushButtonValueType">
+				<xs:sequence>
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attribute ref="latchResetType" />
+				<xs:attributeGroup ref="eSignatureProperties" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="multistateButtonType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="states" type="multistateButtonBaseStatesType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="touchMarginProperties" />
+				<xs:attribute ref="audio" />
+				<xs:attribute ref="backStyle" />
+				<xs:attribute ref="borderStyle" />
+				<xs:attribute ref="borderWidth" />
+				<xs:attribute ref="borderUsesBackColor" />
+                <xs:attribute ref="captionOnBorder" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="highlightColor" />
+				<xs:attribute ref="shape" />
+				<xs:attribute ref="nextStateBasedOn" />
+				<xs:attributeGroup ref="autoRepeatProperties" />
+				<xs:attribute name="setLastStateId" type="setLastStateId255Type" />
+				<xs:attribute name="currentStateId" type="stateId254Type" />
+				<xs:attributeGroup ref="eSignatureProperties" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="multistateButtonBaseStatesType">
+		<xs:sequence>
+			<xs:element name="state" type="multistateButtonBaseStateType" maxOccurs="256" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="multistateButtonBaseStateType">
+		<xs:sequence>
+			<xs:element name="caption" type="basicCaptionType" minOccurs="0" />
+			<xs:element name="imageSettings" type="basicImageType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute name="value" type="xs:integer" />
+		<xs:attributeGroup ref="patternProperties" />
+    <xs:attributeGroup ref="gradientProperties" />
+		<xs:attribute ref="backColor" />
+		<xs:attribute ref="blink" />
+		<xs:attribute ref="borderColor" />
+		<xs:attribute name="stateId" type="stateId254Type" use="required" />
+	</xs:complexType>
+	<xs:complexType name="interlockedButtonType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="states" type="interlockedButtonBaseStatesType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="touchMarginProperties" />
+				<xs:attribute ref="audio" />
+				<xs:attribute ref="backStyle" />
+				<xs:attribute ref="borderStyle" />
+				<xs:attribute ref="borderWidth" />
+				<xs:attribute ref="borderUsesBackColor" />
+                <xs:attribute ref="captionOnBorder" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="highlightColor" />
+				<xs:attribute ref="shape" />
+				<xs:attribute ref="buttonValue" />
+				<xs:attribute name="currentStateId" type="stateId1NoErrorType" />
+				<xs:attributeGroup ref="eSignatureProperties" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="interlockedButtonBaseStatesType">
+		<xs:sequence>
+			<xs:element name="state" type="interlockedButtonBaseStateType" maxOccurs="2" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="interlockedButtonBaseStateType">
+		<xs:sequence>
+			<xs:element name="caption" type="basicCaptionType" minOccurs="0" />
+			<xs:element name="imageSettings" type="basicImageType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attributeGroup ref="patternProperties" />
+    <xs:attributeGroup ref="gradientProperties" />
+		<xs:attribute ref="backColor" />
+		<xs:attribute ref="blink" />
+		<xs:attribute ref="borderColor" />
+		<xs:attribute name="stateId" type="stateId1NoErrorType" use="required" />
+	</xs:complexType>
+	<xs:complexType name="rampButtonType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="caption" type="basicCaptionType" minOccurs="0" />
+					<xs:element name="imageSettings" type="basicImageType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="touchMarginProperties" />
+				<xs:attributeGroup ref="autoRepeatProperties" />
+				<xs:attributeGroup ref="borderProperties" />
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+				<xs:attribute ref="audio" />
+				<xs:attribute ref="blink" />
+                <xs:attribute ref="captionOnBorder" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="highlightColor" />
+				<xs:attribute ref="shape" />
+				<xs:attribute ref="limitValue" />
+				<xs:attribute name="rampType" type="rampTypeEnums" />
+				<xs:attribute ref="rampValue" />
+				<xs:attribute ref="useVariableLimit" />
+				<xs:attribute ref="useVariableRamp" />				
+				<xs:attributeGroup ref="eSignatureProperties" />				
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Key -->
+	<xs:complexType name="keyButtonType">
+		<xs:annotation>
+			<xs:documentation>Button type for most keys.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="caption" type="basicCaptionType" minOccurs="0" />
+					<xs:element name="imageSettings" type="basicImageType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="touchMarginProperties" />
+				<xs:attributeGroup ref="borderProperties" />
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+				<xs:attribute ref="audio" />
+				<xs:attribute ref="blink" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="highlightColor" />
+				<xs:attribute ref="shape" />
+				<xs:attribute ref="linkedObject" />
+				<xs:attribute ref="sendPressTo" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="navigationButtonType">
+		<xs:annotation>
+			<xs:documentation>Button type for most keys.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="active" type="buttonActiveType" minOccurs="0" />
+					<xs:element name="inactive" type="buttonInactiveType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="touchMarginProperties" />
+				<xs:attributeGroup ref="borderProperties" />
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+				<xs:attribute ref="audio" />
+				<xs:attribute ref="blink" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="highlightColor" />
+				<xs:attribute ref="shape" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="timedKeyButtonType">
+		<xs:complexContent>
+			<xs:extension base="keyButtonType">
+				<xs:attributeGroup ref="autoRepeatProperties" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Indicators -->
+	<xs:complexType name="multistateIndicatorType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="states" type="basicStates2001Type" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attribute ref="backStyle" />
+				<xs:attribute ref="borderStyle" />
+				<xs:attribute ref="borderUsesBackColor" />
+				<xs:attribute ref="borderWidth" />
+                <xs:attribute ref="captionOnBorder" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="setLastStateId" />
+				<xs:attribute ref="shape" />
+				<xs:attribute ref="triggerType" />
+				<xs:attribute ref="currentStateId" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="symbolIndicatorImageType">
+		<xs:attributeGroup ref="backgroundProperties" />
+		<xs:attribute ref="blink" />
+		<xs:attribute ref="color" />
+	</xs:complexType>
+	<xs:complexType name="symbolIndicatorStateType">
+		<xs:sequence>
+			<xs:element name="imageSettings" type="symbolIndicatorImageType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute name="value" type="xs:integer" />
+		<xs:attribute ref="borderColor" />
+		<xs:attribute ref="stateId" use="required" />
+	</xs:complexType>
+	<xs:complexType name="symbolIndicatorStatesType">
+		<xs:sequence>
+			<xs:element name="state" type="symbolIndicatorStateType" maxOccurs="2001" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="symbolIndicatorType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="states" type="symbolIndicatorStatesType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attribute ref="borderStyle" />
+				<xs:attribute ref="borderWidth" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="imageName" />
+				<xs:attribute ref="setLastStateId" />
+				<xs:attribute ref="shape" />
+				<xs:attribute ref="triggerType" />
+				<xs:attribute ref="currentStateId" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="listIndicatorCaptionType">
+		<xs:attributeGroup ref="backgroundProperties" />
+		<xs:attribute name="alignment" type="justificationEnums" />
+		<xs:attribute ref="caption" />
+		<xs:attribute ref="blink" />
+		<xs:attribute ref="color" />
+	</xs:complexType>
+	<xs:complexType name="listIndicatorStateType">
+		<xs:sequence>
+			<xs:element name="caption" type="listIndicatorCaptionType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute name="value" type="xs:integer" />
+		<xs:attribute name="stateId" type="stateId255Type" use="required" />
+	</xs:complexType>
+	<xs:complexType name="listIndicatorStatesType">
+		<xs:sequence>
+			<xs:element name="state" type="listIndicatorStateType" maxOccurs="255" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="listIndicatorType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="states" type="listIndicatorStatesType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="borderProperties" />
+				<xs:attributeGroup ref="fontProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+				<xs:attributeGroup ref="selectionColorProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+        <xs:attribute ref="fillStyle" />
+				<xs:attribute ref="backColor" />
+				<xs:attribute ref="blink" />
+				<xs:attribute ref="description" />
+				<xs:attribute name="setLastStateId" type="setLastStateId255Type" />
+				<xs:attribute ref="captionTruncate" />
+				<xs:attribute ref="triggerType" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Graphs and gauges -->
+	<xs:complexType name="thresholdType">
+		<xs:attribute ref="thresholdIndex" />
+		<xs:attribute ref="thresholdValue" />
+		<xs:attribute ref="fillColor" />
+		<xs:attribute ref="blink" />
+	</xs:complexType>
+	<xs:complexType name="barGraphType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="threshold" type="thresholdType" minOccurs="0" maxOccurs="2" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="borderProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+        <xs:attributeGroup ref="gradientFillProperties" />
+        <xs:attributeGroup ref="gradientThresh1Properties" />
+        <xs:attributeGroup ref="gradientThresh2Properties" />
+        <xs:attribute ref="fillStyle" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="fillColor" />
+				<xs:attribute name="fillDirection" type="fillDirectionEnums" />
+				<xs:attribute ref="maxValue" />
+				<xs:attribute ref="minValue" />
+				<xs:attribute ref="thresholdType" />
+				<xs:attribute ref="numberOfThresholds" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="gaugeType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="threshold" type="thresholdType" minOccurs="0" maxOccurs="2" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="fontProperties" />
+				<xs:attributeGroup ref="lineProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+        <xs:attributeGroup ref="gradientFillProperties" />
+        <xs:attributeGroup ref="gradientThresh1Properties" />
+        <xs:attributeGroup ref="gradientThresh2Properties" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="fillColor" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute ref="sweepStyle" />
+				<xs:attribute ref="needleWidth" />
+				<xs:attribute ref="needleColor" />
+				<xs:attribute ref="majorTicks" />
+				<xs:attribute ref="minorTicks" />
+				<xs:attribute ref="maxValue" />
+				<xs:attribute ref="minValue" />
+				<xs:attribute ref="showLegend" />
+				<xs:attribute name="digitsAfterDecimalPoint" type="digitsAfterDecimalPoint8Type" />
+				<xs:attribute ref="legendColor" />
+				<xs:attribute ref="numberOfThresholds" />
+				<xs:attribute ref="thresholdType" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="scaleType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="borderProperties" />
+				<xs:attributeGroup ref="lineProperties" />
+				<xs:attribute ref="blink" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute ref="tickDirection" />
+				<xs:attribute ref="majorTicks" />
+				<xs:attribute ref="minorTicks" />
+				<xs:attributeGroup ref="gradientProperties" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Advanced -->
+	<xs:complexType name="controlListSelectorCaptionType">
+		<xs:attributeGroup ref="backgroundProperties" />
+		<xs:attribute ref="caption" />
+		<xs:attribute name="alignment" type="justificationEnums" />
+		<xs:attribute ref="blink" />
+		<xs:attribute ref="color" />
+	</xs:complexType>
+	<xs:complexType name="controlListSelectorStateType">
+		<xs:sequence>
+			<xs:element name="caption" type="controlListSelectorCaptionType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute name="value" type="xs:integer" />
+		<xs:attribute name="stateId" type="stateId255Type" use="required" />
+	</xs:complexType>
+	<xs:complexType name="controlListSelectorStatesType">
+		<xs:sequence>
+			<xs:element name="state" type="controlListSelectorStateType" maxOccurs="255" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="controlListSelectorType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="states" type="controlListSelectorStatesType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="borderProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+				<xs:attributeGroup ref="selectionColorProperties" />
+				<xs:attributeGroup ref="fontProperties" />
+				<xs:attributeGroup ref="enterKeyProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+        <xs:attribute ref="fillStyle" />
+				<xs:attribute ref="backColor" />
+				<xs:attribute ref="blink" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="captionTruncate" />
+				<xs:attribute name="setLastStateId" type="setLastStateId255Type" />
+				<xs:attribute ref="writeOnEnter" />
+				<xs:attribute ref="keyNavigation" />
+				<xs:attribute ref="wrapAround" />
+				<xs:attributeGroup ref="eSignatureProperties" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="pilotedControlListSelectorStateType">
+		<xs:sequence>
+			<xs:element name="caption" type="controlListSelectorCaptionType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute name="value" type="xs:integer" />
+		<xs:attribute name="stateId" type="stateId255Type" use="required" />
+		<xs:attribute ref="access" />
+	</xs:complexType>
+	<xs:complexType name="pilotedControlListSelectorStatesType">
+		<xs:sequence>
+			<xs:element name="state" type="pilotedControlListSelectorStateType" maxOccurs="255" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="pilotedControlListSelectorType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="states" type="pilotedControlListSelectorStatesType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="borderProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+				<xs:attributeGroup ref="selectionColorProperties" />
+				<xs:attributeGroup ref="fontProperties" />
+				<xs:attributeGroup ref="enterKeyProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+        <xs:attribute ref="fillStyle" />
+				<xs:attribute ref="backColor" />
+				<xs:attribute ref="blink" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="captionTruncate" />
+				<xs:attribute name="setLastStateId" type="setLastStateId255Type" />
+				<xs:attribute ref="writeOnEnter" />
+				<xs:attribute ref="keyNavigation" />
+				<xs:attribute ref="wrapAround" />
+				<xs:attributeGroup ref="eSignatureProperties" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="localMessageDisplayType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="borderProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+				<xs:attributeGroup ref="fontProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute ref="blink" />
+				<xs:attribute ref="alignment" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="messageFile" />
+				<xs:attribute ref="UseVariableMesssageFile"/>
+				<xs:attribute ref="UseEchoMessage"/>
+				<xs:attribute ref="wordWrap" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="timeAndDateDisplayType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="borderProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+				<xs:attributeGroup ref="fontProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute ref="blink" />
+				<xs:attribute ref="alignment" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="timeAndDateFormat" />
+				<xs:attribute ref="wordWrap" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="displayListSelectorCaptionType">
+		<xs:attributeGroup ref="backgroundProperties" />
+		<xs:attribute name="caption" type="xs:string" />
+		<xs:attribute name="alignment" type="justificationEnums" />
+		<xs:attribute ref="blink" />
+		<xs:attribute ref="color" />
+		<xs:attribute ref="usesDisplayName" />
+	</xs:complexType>
+	<xs:complexType name="displayListSelectorStateType">
+		<xs:sequence>
+			<xs:element name="caption" type="displayListSelectorCaptionType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute name="stateId" type="stateId255Type" use="required" />
+		<xs:attribute ref="display" />
+		<xs:attribute ref="displayPosition" />
+		<xs:attribute ref="displayLeftPosition" />
+		<xs:attribute ref="displayTopPosition" />
+		<xs:attribute ref="parameterFile" />
+		<xs:attribute ref="parameterList" />
+		<xs:attribute ref="parameterType" />
+	</xs:complexType>
+	<xs:complexType name="displayListSelectorStatesType">
+		<xs:sequence>
+			<xs:element name="state" type="displayListSelectorStateType" maxOccurs="255" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="displayListSelectorType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="states" type="displayListSelectorStatesType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="borderProperties" />
+				<xs:attributeGroup ref="fontProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+				<xs:attributeGroup ref="selectionColorProperties" />
+        <xs:attributeGroup ref="gradientProperties" />
+        <xs:attribute ref="fillStyle" />
+				<xs:attribute ref="backColor" />
+				<xs:attribute ref="blink" />
+				<xs:attribute ref="captionTruncate" />
+				<xs:attribute ref="description" />
+				<xs:attribute ref="keyNavigation" />
+				<xs:attribute ref="wrapAround" />
+				<xs:attribute name="setLastStateId" type="setLastStateId255Type" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="activeXObjectType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="data" type="activeXDataType" minOccurs="0" />
+					<xs:element name="animations" type="animationsVisibilityType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attribute ref="classId" use="required" />
+				<xs:attribute ref="focusHighlight" />
+				<xs:attribute ref="keyNavigation" />
+				<xs:attribute ref="pointerHighlight" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="activeXDataType">
+		<xs:attribute ref="data" />
+		<xs:attribute name="progId" type="xs:string" use="required" />
+		<xs:attribute name="fileName" type="xs:string" use="required" />
+		<xs:attribute name="fileVersion" type="fileVersionType" use="required" />
+		<xs:attribute name="typeLibrary" type="classIdType" use="required" />
+		<xs:attribute name="typeLibVersion" type="xs:string" use="required" />
+	</xs:complexType>
+	<xs:complexType name="activeXPropertiesType">
+		<xs:sequence>
+			<xs:element name="property" type="activeXPropertyType" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="activeXPropertyType">
+		<xs:attribute ref="propertyName" />
+		<xs:attribute ref="propertyType" />
+		<xs:attribute ref="propertyValue" />
+	</xs:complexType>
+	<!-- Drawing Objects -->
+	<xs:complexType name="drawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicDrawingObjectType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="rotationDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicRotationDrawingObjectType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="lineDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicLineDrawingObjectType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="roundedRectangleDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicRoundedRectangleDrawingObjectType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="pathDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicPathDrawingObjectType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="polygonDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicPolygonDrawingObjectType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="polyPolygonDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicPolyPolygonDrawingObjectType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="angleDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicAngleDrawingObjectType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="textDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="basicTextDrawingObjectType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEImageDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="imageDrawingObjectType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEPanelDrawingObjectType">
+		<xs:complexContent>
+			<xs:extension base="panelDrawingObjectType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Push Buttons -->
+	<xs:complexType name="buttonType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:choice minOccurs="0">
+						<xs:element name="action" type="buttonActionSEType" />
+						<xs:element name="command" type="buttonCommandType" />
+                    </xs:choice>
+					<xs:element name="up" type="buttonUpType" minOccurs="0" />
+					<xs:element name="down" type="buttonDownType" minOccurs="0" />
+					<xs:element name="ability" type="buttonAbilityType" minOccurs="0" />
+					<xs:element name="confirm" type="ConfirmType" minOccurs="0" />  <!-- yyyang add-->
+					<xs:element name="animations" type="animationsSEButtonType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+				<xs:attribute ref="style" />
+				<xs:attribute ref="bevelWidth" />
+				<xs:attribute ref="captureCursor" />
+				<xs:attribute ref="highlightOnFocus" />
+				<xs:attribute ref="tabIndex" />
+				<xs:attribute name="path" type="polygonType" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="buttonActionSEType">
+		<xs:attribute name="type" type="buttonActionSEEnums" />
+		<xs:attribute ref="tag" />
+	</xs:complexType>
+	<xs:complexType name="buttonCommandType">
+		<xs:attribute ref="pressAction" />
+		<xs:attribute ref="repeatAction" />
+		<xs:attribute ref="releaseAction" />
+		<xs:attribute ref="repeatRate" />
+	</xs:complexType>
+
+    <xs:complexType name="ConfirmType" >  <!-- yyyang add-->
+		<xs:sequence>
+			<xs:element name="caption" type="buttonCaptionType" minOccurs="0" />
+			<xs:element name="imageSettings" type="buttonImageType" minOccurs="0" />
+		</xs:sequence>
+        <xs:attribute ref="confirmAction" />
+        <xs:attribute ref="buttonSetting" />
+        <xs:attribute ref="titleBar" />
+        <xs:attribute ref="titleBarText" />
+		<xs:attribute ref="windowPosition" />
+    </xs:complexType>
+	<xs:complexType name="buttonUpType">
+		<xs:sequence>
+			<xs:element name="caption" type="buttonCaptionType" minOccurs="0" />
+			<xs:element name="imageSettings" type="buttonImageType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attributeGroup ref="backgroundProperties" />
+		<xs:attribute ref="foreColor" />
+		<xs:attributeGroup ref="patternProperties" />
+    <xs:attributeGroup ref="gradientProperties" />
+	</xs:complexType>
+	<xs:complexType name="buttonDownType">
+		<xs:complexContent>
+			<xs:extension base="buttonUpType">
+				<xs:attribute ref="downSameAsUp" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+  <xs:complexType name="buttonAbilityType">
+    <xs:attribute ref="showDisabledState" />
+    <xs:attribute ref="expression" />
+    <xs:attribute ref="enabledWhenExpressionIsTrue" />
+    <xs:attribute ref="disabledImageType" />
+    <xs:attribute ref="imageRef" />
+    <xs:attribute ref="importFile" />
+    <xs:attribute ref="scaleImage" />
+  </xs:complexType>
+	<xs:complexType name="buttonCaptionType">
+		<xs:attributeGroup ref="fontProperties" />
+		<xs:attribute ref="caption" />
+	</xs:complexType>
+	<xs:complexType name="buttonImageType">
+		<xs:attribute ref="imageReference" />
+		<xs:attribute ref="imageName" />
+		<xs:attribute ref="imageFile" />
+		<xs:attribute ref="scaled" />
+	</xs:complexType>
+	<xs:complexType name="SEMomentaryButtonType">
+		<xs:complexContent>
+			<xs:extension base="momentaryButtonType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEMaintainedButtonType">
+		<xs:complexContent>
+			<xs:extension base="maintainedButtonType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SELatchedButtonType">
+		<xs:complexContent>
+			<xs:extension base="latchedButtonType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEMultistateButtonType">
+		<xs:complexContent>
+			<xs:extension base="multistateButtonType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEInterlockedButtonType">
+		<xs:complexContent>
+			<xs:extension base="interlockedButtonType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SERampButtonType">
+		<xs:complexContent>
+			<xs:extension base="rampButtonType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="buttonActiveType">
+		<xs:sequence>
+			<xs:element name="caption" type="basicCaptionType" minOccurs="0" />
+			<xs:element name="imageSettings" type="basicImageType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute ref="backColor" />
+		<xs:attribute ref="borderColor" />
+		<xs:attribute ref="blink" />
+		<xs:attributeGroup ref="patternProperties" />
+    <xs:attributeGroup ref="gradientProperties" />
+	</xs:complexType>
+	<xs:complexType name="buttonInactiveType">
+		<xs:complexContent>
+			<xs:extension base="buttonActiveType">
+		        	<xs:attribute ref="InactiveSameAsActive" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Numeric and String -->
+	<xs:complexType name="numericDisplayType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="fontScaledProperties" />
+				<xs:attributeGroup ref="SECommon" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute ref="fieldLength" />
+        <xs:attribute name="showDigitGrouping" type="xs:boolean"/>
+				<xs:attribute name="decimalPlaces" type="decimalPlaces3Type" />
+				<xs:attribute ref="format" />
+				<xs:attribute ref="overflow" />
+				<xs:attribute ref="leadingCharacter" />
+				<xs:attribute ref="justification" />
+        <xs:attribute ref="decimalPlaceType" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="numericInputType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllButColorFillSEType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+					<xs:element name="confirm" type="ConfirmType" minOccurs="0"/>  <!-- yyyang add-->
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+				<xs:attributeGroup ref="fontScaledProperties" />
+				<xs:attribute ref="tabIndex" />
+				<xs:attribute ref="defaultData" />
+				<xs:attribute name="fieldLength" type="fieldLength99Type" />
+				<xs:attribute name="decimalPlaces" type="decimalPlaces2Type" />
+				<xs:attribute ref="format" />
+				<xs:attribute ref="overflow" />
+				<xs:attribute ref="justification" />
+				<xs:attribute ref="leadingCharacter" />
+				<xs:attribute ref="continuouslyUpdate" />
+				<xs:attribute ref="discardInputOnFocusLost" />
+				<xs:attribute ref="inputSecurityCode" />
+				<xs:attribute ref="displayOnScreenKeypad" />
+				<xs:attribute ref="keypadCustomCaption" />
+        <xs:attribute ref="decimalPlaceType" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="stringDisplayType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="SECommon" />
+				<xs:attributeGroup ref="fontScaledProperties" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute name="dimensionsWidth" type="fieldLength999Type" />
+				<xs:attribute name="dimensionsHeight" type="fieldLength999Type" />
+				<xs:attribute ref="characterOffset" />
+				<xs:attribute ref="justification" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="stringInputType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllButColorFillSEType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+					<xs:element name="confirm" type="ConfirmType" minOccurs="0"/>  <!-- yyyang add-->
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+				<xs:attributeGroup ref="fontScaledProperties" />
+				<xs:attribute ref="tabIndex" />
+				<xs:attribute ref="defaultData" />
+				<xs:attribute name="dimensionsWidth" type="fieldLength99Type" />
+				<xs:attribute name="dimensionsHeight" type="fieldLength99Type" />
+				<xs:attribute ref="justification" />
+				<xs:attribute ref="continuouslyUpdate" />
+				<xs:attribute ref="discardInputOnFocusLost" />
+				<xs:attribute ref="inputSecurityCode" />
+				<xs:attribute ref="displayOnScreenKeypad" />
+				<xs:attribute ref="keypadCustomCaption" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Indicator  -->
+	<xs:complexType name="SEMultistateIndicatorType">
+		<xs:complexContent>
+			<xs:extension base="multistateIndicatorType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SESymbolIndicatorType">
+		<xs:complexContent>
+			<xs:extension base="symbolIndicatorType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEListIndicatorType">
+		<xs:complexContent>
+			<xs:extension base="listIndicatorType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Gauge and Graph -->
+	<xs:complexType name="SEBarGraphType">
+		<xs:complexContent>
+			<xs:extension base="barGraphType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEGaugeType">
+		<xs:complexContent>
+			<xs:extension base="gaugeType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEScaleType">
+		<xs:complexContent>
+			<xs:extension base="scaleType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Key -->
+	<xs:complexType name="SEKeyButtonType">
+		<xs:complexContent>
+			<xs:extension base="keyButtonType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SETimedKeyButtonType">
+		<xs:complexContent>
+			<xs:extension base="timedKeyButtonType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Advanced -->
+	<xs:complexType name="arrowType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:choice minOccurs="0">
+						<xs:element name="rotation" type="rotationElementType" minOccurs="0" />
+						<xs:element name="transform" type="transformType" minOccurs="0" />
+					</xs:choice>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="connections" type="connectionsType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="patternProperties" />
+				<xs:attributeGroup ref="lineProperties" />
+				<xs:attributeGroup ref="SECommon" />
+        <xs:attributeGroup ref="gradientProperties" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute name="useRange" type="xs:boolean" />
+				<xs:attribute name="min" type="xs:double" />
+				<xs:attribute name="max" type="xs:double" />
+				<xs:attribute ref="direction" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEControlListSelectorType">
+		<xs:complexContent>
+			<xs:extension base="controlListSelectorType">
+				<xs:attributeGroup ref="SECommon" />
+				<xs:attribute ref="tabIndex" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEPilotedControlListSelectorType">
+		<xs:complexContent>
+			<xs:extension base="pilotedControlListSelectorType">
+				<xs:attributeGroup ref="SECommon" />
+				<xs:attribute ref="tabIndex" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="tagLabelType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="backgroundProperties" />
+				<xs:attributeGroup ref="fontScaledProperties" />
+				<xs:attributeGroup ref="SECommon" />
+				<xs:attribute ref="foreColor" />
+				<xs:attribute ref="tag" />
+				<xs:attribute ref="property" />
+				<xs:attribute name="fieldLength" type="fieldLength99999Type" />
+				<xs:attribute ref="justification" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEDisplayListSelectorType">
+		<xs:complexContent>
+			<xs:extension base="displayListSelectorType">
+				<xs:attributeGroup ref="SECommon" />
+				<xs:attribute ref="tabIndex" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SELocalMessageDisplayType">
+		<xs:complexContent>
+			<xs:extension base="localMessageDisplayType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="recipeType">
+		<xs:complexContent>
+			<xs:extension base="objectBaseType">
+				<xs:sequence>
+					<xs:element name="animations" type="animationsAllButColorFillSEType" minOccurs="0" />
+					<xs:element name="objectKeys" type="objectKeysType" minOccurs="0" />
+					<xs:element name="parameters" type="parametersType" minOccurs="0" />
+				</xs:sequence>
+				<xs:attributeGroup ref="SECommon" />
+				<xs:attributeGroup ref="fontScaledProperties" />
+				<xs:attribute ref="defaultName" />
+				<xs:attribute name="fieldLength" type="fieldLength99999Type" />
+				<xs:attribute ref="justification" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SETimeAndDateDisplayType">
+		<xs:complexContent>
+			<xs:extension base="timeAndDateDisplayType">
+				<xs:attributeGroup ref="SECommon" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SENavigationButtonType">
+		<xs:complexContent>
+			<xs:extension base="navigationButtonType">
+			<xs:attributeGroup ref="SECommon" />
+				<xs:attribute ref="action" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="SEActiveXObjectType">
+		<xs:complexContent>
+			<xs:extension base="activeXObjectType">
+				<xs:attributeGroup ref="SECommon" />
+				<xs:attribute ref="tabIndex" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="displayKeysType">
+		<xs:sequence>
+			<xs:element name="key" type="objectKeyType" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="objectKeysType">
+		<xs:sequence>
+			<xs:element name="key" type="objectKeyType" minOccurs="0" maxOccurs="204" />
+		</xs:sequence>
+		<xs:attribute ref="tabIndex" />
+		<xs:attribute ref="focusHighlight" />
+		<xs:attribute ref="currentTag" />
+	</xs:complexType>
+	<xs:complexType name="objectKeyType">
+		<xs:attribute name="key" type="keySEEnums" use="required" />
+		<xs:attribute ref="controlModifier" />
+		<xs:attribute ref="shiftModifier" />
+		<xs:attribute ref="label" />
+		<xs:attribute ref="pressAction" />
+		<xs:attribute ref="repeatAction" />
+		<xs:attribute ref="releaseAction" />
+	</xs:complexType>
+  <xs:complexType name="vbaProjectType"><!--Add by HMA1-->
+    <xs:sequence>
+      <xs:element name="vbaItem" type="vbaItemType" maxOccurs="unbounded"/>
+    </xs:sequence>  
+  </xs:complexType>
+	
+  <xs:complexType name="displaySettingsType">
+		<xs:complexContent>
+			<xs:extension base="basicDisplaySettingsType">
+				<xs:attribute name="displayType" type="displayTypeSEEnums" />
+				<xs:attribute ref="keepAtBack" />
+				<xs:attribute ref="allowMultipleRunningCopies" />
+				<xs:attribute ref="cacheAfterDisplaying" />
+				<xs:attribute ref="alwaysUpdating" />
+				<xs:attribute ref="systemMenu" />
+				<xs:attribute ref="minimizeButton" />
+				<xs:attribute ref="sizeToMainWindow" />
+				<xs:attribute ref="showLastAcquiredValue" />
+				<xs:attribute ref="TrackScreenForNavigation" />
+				<xs:attribute ref="TrackName" />
+				<xs:attribute ref="allowResizing" />
+				<xs:attribute ref="whenResized" />
+				<xs:attribute ref="position" />
+				<xs:attribute ref="beepOnPress" />
+				<xs:attribute ref="highlightWhenCursorPassesOver" />
+				<xs:attribute ref="interactiveHighlightColor" />
+				<xs:attribute ref="displayOnScreenKeyboard" />
+				<xs:attribute ref="allowButtonActionOnError" />
+				<xs:attribute ref="fieldNotSelectedTextColor" />
+				<xs:attribute ref="fieldNotSelectedFillColor" />
+				<xs:attribute ref="fieldSelectedTextColor" />
+				<xs:attribute ref="fieldSelectedFillColor" />
+				<xs:attribute ref="fieldInErrorNotSelectedTextColor" />
+				<xs:attribute ref="fieldInErrorNotSelectedFillColor" />
+				<xs:attribute ref="fieldInErrorSelectedTextColor" />
+				<xs:attribute ref="fieldInErrorSelectedFillColor" />
+				<xs:attribute ref="startupCommand" />
+				<xs:attribute ref="shutdownCommand" />
+        <xs:attribute ref="useGradientStyle" />
+        <xs:attributeGroup ref="gradientProperties" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- Restrictions on simple types -->
+  <xs:simpleType name="vbaCodeType"><!--Add by HMA1-->
+	<xs:restriction base="xs:string">
+	</xs:restriction>
+  </xs:simpleType>
+	<xs:simpleType name="intType">
+		<xs:restriction base="xs:int">
+			<xs:minInclusive value="-2147483648" />
+			<xs:maxInclusive value="2147483647" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="positiveInt">
+		<xs:restriction base="xs:int">
+			<xs:minInclusive value="1" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="positiveShort">
+		<xs:restriction base="xs:short">
+			<xs:minInclusive value="1" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="nonNegativeShort">
+		<xs:restriction base="xs:short">
+			<xs:minInclusive value="0" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="angleType">
+		<xs:restriction base="xs:double" />
+	</xs:simpleType>
+	<xs:simpleType name="animationExpressionType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="30000" />
+		</xs:restriction>
+	</xs:simpleType>
+  <xs:simpleType name="abilityExpressionType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="30000" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="abilityImageRefType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="30000" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="abilityImportFileType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="30000" />
+    </xs:restriction>
+  </xs:simpleType>
+	<xs:simpleType name="autoRepeatRateType">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:maxInclusive value="20" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="bevelWidthType">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:maxInclusive value="200" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="blinkRateType">
+		<xs:restriction base="xs:float">
+			<xs:minInclusive value="0" />
+			<xs:maxInclusive value="100000" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="captionType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="30000" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="characterOffsetType">
+		<xs:restriction base="nonNegativeShort">
+			<xs:maxInclusive value="255" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="characterSize">
+		<xs:restriction base="nonNegativeShort">
+			<xs:maxInclusive value="999" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fileVersionType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="classIdType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="colorType">
+		<xs:annotation>
+			<xs:documentation>RGB color definition (6 digit hex)</xs:documentation>
+		</xs:annotation>
+		<xs:union>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="7" />
+					<xs:pattern value="#[a-fA-F0-9]*" />
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:NMTOKEN">
+					<xs:enumeration value="aliceblue" />
+					<xs:enumeration value="antiquewhite" />
+					<xs:enumeration value="aqua" />
+					<xs:enumeration value="aquamarine" />
+					<xs:enumeration value="azure" />
+					<xs:enumeration value="beige" />
+					<xs:enumeration value="bisque" />
+					<xs:enumeration value="black" />
+					<xs:enumeration value="blanchedalmond" />
+					<xs:enumeration value="blue" />
+					<xs:enumeration value="blueviolet" />
+					<xs:enumeration value="brown" />
+					<xs:enumeration value="burlywood" />
+					<xs:enumeration value="cadetblue" />
+					<xs:enumeration value="chartreuse" />
+					<xs:enumeration value="chocolate" />
+					<xs:enumeration value="coral" />
+					<xs:enumeration value="cornflowerblue" />
+					<xs:enumeration value="cornsilk" />
+					<xs:enumeration value="crimson" />
+					<xs:enumeration value="cyan" />
+					<xs:enumeration value="darkblue" />
+					<xs:enumeration value="darkcyan" />
+					<xs:enumeration value="darkgoldenrod" />
+					<xs:enumeration value="darkgray" />
+					<xs:enumeration value="darkgreen" />
+					<xs:enumeration value="darkgrey" />
+					<xs:enumeration value="darkkhaki" />
+					<xs:enumeration value="darkmagenta" />
+					<xs:enumeration value="darkolivegreen" />
+					<xs:enumeration value="darkorange" />
+					<xs:enumeration value="darkorchid" />
+					<xs:enumeration value="darkred" />
+					<xs:enumeration value="darksalmon" />
+					<xs:enumeration value="darkseagreen" />
+					<xs:enumeration value="darkslateblue" />
+					<xs:enumeration value="darkslategray" />
+					<xs:enumeration value="darkslategrey" />
+					<xs:enumeration value="darkturquoise" />
+					<xs:enumeration value="darkviolet" />
+					<xs:enumeration value="deeppink" />
+					<xs:enumeration value="deepskyblue" />
+					<xs:enumeration value="dimgray" />
+					<xs:enumeration value="dimgrey" />
+					<xs:enumeration value="dodgerblue" />
+					<xs:enumeration value="firebrick" />
+					<xs:enumeration value="floralwhite" />
+					<xs:enumeration value="forestgreen" />
+					<xs:enumeration value="fuchsia" />
+					<xs:enumeration value="gainsboro" />
+					<xs:enumeration value="ghostwhite" />
+					<xs:enumeration value="gold" />
+					<xs:enumeration value="goldenrod" />
+					<xs:enumeration value="gray" />
+					<xs:enumeration value="grey" />
+					<xs:enumeration value="green" />
+					<xs:enumeration value="greenyellow" />
+					<xs:enumeration value="honeydew" />
+					<xs:enumeration value="hotpink" />
+					<xs:enumeration value="indianred" />
+					<xs:enumeration value="indigo" />
+					<xs:enumeration value="ivory" />
+					<xs:enumeration value="khaki" />
+					<xs:enumeration value="lavender" />
+					<xs:enumeration value="lavenderblush" />
+					<xs:enumeration value="lawngreen" />
+					<xs:enumeration value="lemonchiffon" />
+					<xs:enumeration value="lightblue" />
+					<xs:enumeration value="lightcoral" />
+					<xs:enumeration value="lightcyan" />
+					<xs:enumeration value="lightgoldenrodyellow" />
+					<xs:enumeration value="lightgray" />
+					<xs:enumeration value="lightgreen" />
+					<xs:enumeration value="lightgrey" />
+					<xs:enumeration value="lightpink" />
+					<xs:enumeration value="lightsalmon" />
+					<xs:enumeration value="lightseagreen" />
+					<xs:enumeration value="lightskyblue" />
+					<xs:enumeration value="lightslategray" />
+					<xs:enumeration value="lightslategrey" />
+					<xs:enumeration value="lightsteelblue" />
+					<xs:enumeration value="lightyellow" />
+					<xs:enumeration value="lime" />
+					<xs:enumeration value="limegreen" />
+					<xs:enumeration value="linen" />
+					<xs:enumeration value="magenta" />
+					<xs:enumeration value="maroon" />
+					<xs:enumeration value="mediumaquamarine" />
+					<xs:enumeration value="mediumblue" />
+					<xs:enumeration value="mediumorchid" />
+					<xs:enumeration value="mediumpurple" />
+					<xs:enumeration value="mediumseagreen" />
+					<xs:enumeration value="mediumslateblue" />
+					<xs:enumeration value="mediumspringgreen" />
+					<xs:enumeration value="mediumturquoise" />
+					<xs:enumeration value="mediumvioletred" />
+					<xs:enumeration value="midnightblue" />
+					<xs:enumeration value="mintcream" />
+					<xs:enumeration value="mistyrose" />
+					<xs:enumeration value="moccasin" />
+					<xs:enumeration value="navajowhite" />
+					<xs:enumeration value="navy" />
+					<xs:enumeration value="oldlace" />
+					<xs:enumeration value="olive" />
+					<xs:enumeration value="olivedrab" />
+					<xs:enumeration value="orange" />
+					<xs:enumeration value="orangered" />
+					<xs:enumeration value="orchid" />
+					<xs:enumeration value="palegoldenrod" />
+					<xs:enumeration value="palegreen" />
+					<xs:enumeration value="paleturquoise" />
+					<xs:enumeration value="palevioletred" />
+					<xs:enumeration value="papayawhip" />
+					<xs:enumeration value="peachpuff" />
+					<xs:enumeration value="peru" />
+					<xs:enumeration value="pink" />
+					<xs:enumeration value="plum" />
+					<xs:enumeration value="powderblue" />
+					<xs:enumeration value="purple" />
+					<xs:enumeration value="red" />
+					<xs:enumeration value="rosybrown" />
+					<xs:enumeration value="royalblue" />
+					<xs:enumeration value="saddlebrown" />
+					<xs:enumeration value="salmon" />
+					<xs:enumeration value="sandybrown" />
+					<xs:enumeration value="seagreen" />
+					<xs:enumeration value="seashell" />
+					<xs:enumeration value="sienna" />
+					<xs:enumeration value="silver" />
+					<xs:enumeration value="skyblue" />
+					<xs:enumeration value="slateblue" />
+					<xs:enumeration value="slategray" />
+					<xs:enumeration value="slategrey" />
+					<xs:enumeration value="snow" />
+					<xs:enumeration value="springgreen" />
+					<xs:enumeration value="steelblue" />
+					<xs:enumeration value="tan" />
+					<xs:enumeration value="teal" />
+					<xs:enumeration value="thistle" />
+					<xs:enumeration value="tomato" />
+					<xs:enumeration value="turquoise" />
+					<xs:enumeration value="violet" />
+					<xs:enumeration value="wheat" />
+					<xs:enumeration value="white" />
+					<xs:enumeration value="whitesmoke" />
+					<xs:enumeration value="yellow" />
+					<xs:enumeration value="yellowgreen" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+	<xs:simpleType name="commandStringType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="30000" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="componentType">
+		<xs:restriction base="xs:string" />
+	</xs:simpleType>
+	<xs:simpleType name="connectionNameType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="40" />
+			<xs:pattern value="[\p{L}\p{Nd}s\-\\_ ]*" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="connectionExpressionType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="16000" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="decimalPlaces2Type">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:maxInclusive value="99" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="decimalPlaces3Type">
+		<xs:restriction base="xs:unsignedShort">
+			<xs:maxInclusive value="999" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="defaultDataType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="30000" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="defaultNameType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="5826" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="descriptionType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="32767" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="digitsAfterDecimalPointType">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:maxInclusive value="15" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="digitsAfterDecimalPoint8Type">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:maxInclusive value="8" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="displaySettingDimensionType">
+		<xs:restriction base="xs:short">
+			<xs:minInclusive value="0" />
+			<xs:maxInclusive value="32000" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fieldLength99Type">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:minInclusive value="1" />
+			<xs:maxInclusive value="99" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fieldLength999Type">
+		<xs:restriction base="xs:unsignedShort">
+			<xs:minInclusive value="1" />
+			<xs:maxInclusive value="999" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fieldLength99999Type">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="1" />
+			<xs:maxInclusive value="99999" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fieldLength999999Type">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:maxInclusive value="999999" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fillRangeType">
+		<xs:restriction base="xs:float">
+			<xs:minInclusive value="0" />
+			<xs:maxInclusive value="100" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fontSizeType">
+		<xs:restriction base="xs:float">
+			<xs:minInclusive value="1" />
+			<xs:maxInclusive value="999" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="imageFileType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="256" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="lineType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="\s*-?\d+\s+-?\d+\s+-?\d+\s+-?\d+\s*" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="linkBaseObjectType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="287" /> <!-- 256 + 1 + 30 -->
+			<xs:pattern value="[-\p{L}\p{Nd}_ ,@!`$()]+\.\p{L}[\p{L}\p{Nd}_]*" />  <!-- ".+\..+" -->
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="majorTicksType">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:minInclusive value="2" />
+			<xs:maxInclusive value="20" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="maxAnimationTagExpressionRange">
+		<xs:restriction base="xs:string" />
+	</xs:simpleType>
+	<xs:simpleType name="minAnimationTagExpressionRange">
+		<xs:restriction base="xs:string" />
+	</xs:simpleType>
+	<xs:simpleType name="minorTicksType">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:maxInclusive value="20" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="numberOfDigitsType">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:minInclusive value="1" />
+			<xs:maxInclusive value="17" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="numberOfThresholdsType">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:maxInclusive value="2" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="objectNameType">
+		<xs:restriction base="xs:ID">
+			<xs:maxLength value="64" />
+			<xs:pattern value="\p{L}(\p{L}?\p{Nd}?_?)*" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="pathType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="\s*-?\d+\s+-?\d+\s*(\s+-?\d+\s+-?\d+\s*)*" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="polygonType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="\s*-?\d+\s+-?\d+\s+-?\d+\s+-?\d+\s*(\s+-?\d+\s+-?\d+\s*)*" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="stringLineLengthType">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:minInclusive value="1" />
+			<xs:maxInclusive value="82" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="startHeightType">
+		<xs:restriction base="xs:long">
+			<xs:minInclusive value="1" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="startWidthType">
+		<xs:restriction base="xs:long">
+			<xs:minInclusive value="1" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="tagType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="999" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="thresholdIndexType">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:minInclusive value="1" />
+			<xs:maxInclusive value="2" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="titleBarTextType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="30000" />
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- StateIDs -->
+	<xs:simpleType name="stateId1Type">
+		<xs:annotation>
+			<xs:documentation>0, 1 or Error</xs:documentation>
+		</xs:annotation>
+		<xs:union>
+			<xs:simpleType>
+				<xs:restriction base="xs:NMTOKEN">
+					<xs:enumeration value="Error" />
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:unsignedByte">
+					<xs:maxInclusive value="1" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+	<xs:simpleType name="stateId1NoErrorType">
+		<xs:restriction base="xs:byte">
+			<xs:maxInclusive value="1" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="stateId1999Type">
+		<xs:annotation>
+			<xs:documentation>0, 1, ... 1999 or Error</xs:documentation>
+		</xs:annotation>
+		<xs:union>
+			<xs:simpleType>
+				<xs:restriction base="xs:NMTOKEN">
+					<xs:enumeration value="Error" />
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:unsignedShort">
+					<xs:maxInclusive value="1999" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+	<xs:simpleType name="stateId254Type">
+		<xs:annotation>
+			<xs:documentation>0, 1, ... 254 or Error</xs:documentation>
+		</xs:annotation>
+		<xs:union>
+			<xs:simpleType>
+				<xs:restriction base="xs:NMTOKEN">
+					<xs:enumeration value="Error" />
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:unsignedByte">
+					<xs:maxInclusive value="254" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+	<xs:simpleType name="stateId255Type">
+		<xs:annotation>
+			<xs:documentation>0, 1, ... 255</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:unsignedShort">
+			<xs:maxInclusive value="255" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="setLastStateId2000Type">
+		<xs:restriction base="xs:unsignedShort">
+			<xs:minInclusive value="2" />
+			<xs:maxInclusive value="2000" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="setLastStateId255Type">
+		<xs:restriction base="xs:unsignedByte">
+			<xs:minInclusive value="2" />
+			<xs:maxInclusive value="255" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="parameterNameType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="11" />
+			<xs:pattern value="#[1-9]?[0-9]*" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="parameterValueType">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="999" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="hashValueType"><!--Add by HMA1-->
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="32" />
+			<xs:pattern value="[a-fA-F0-9]*" />
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- Enumerations -->
+	<xs:simpleType name="accessEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="none" />
+			<xs:enumeration value="operator" />
+			<xs:enumeration value="remote" />
+			<xs:enumeration value="operatorAndRemote" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="actionEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="DisplayPreviousScreen" />
+			<xs:enumeration value="DisplayNextScreen" />
+			<xs:enumeration value="DisplayNavigationHistory" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="activeXPropertyTypeEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="VT_EMPTY" />
+			<xs:enumeration value="VT_NULL" />
+			<xs:enumeration value="VT_I2" />
+			<xs:enumeration value="VT_I4" />
+			<xs:enumeration value="VT_R4" />
+			<xs:enumeration value="VT_R8" />
+			<xs:enumeration value="VT_CY" />
+			<xs:enumeration value="VT_DATE" />
+			<xs:enumeration value="VT_BSTR" />
+			<xs:enumeration value="VT_DISPATCH" />
+			<xs:enumeration value="VT_ERROR" />
+			<xs:enumeration value="VT_BOOL" />
+			<xs:enumeration value="VT_VARIANT" />
+			<xs:enumeration value="VT_DECIMAL" />
+			<xs:enumeration value="VT_RECORD" />
+			<xs:enumeration value="VT_UNKNOWN" />
+			<xs:enumeration value="VT_I1" />
+			<xs:enumeration value="VT_UI1" />
+			<xs:enumeration value="VT_UI2" />
+			<xs:enumeration value="VT_UI4" />
+			<xs:enumeration value="VT_INT" />
+			<xs:enumeration value="VT_UINT" />
+			<xs:enumeration value="VT_VOID" />
+			<xs:enumeration value="VT_HRESULT" />
+			<xs:enumeration value="VT_PTR" />
+			<xs:enumeration value="VT_SAFEARRAY" />
+			<xs:enumeration value="VT_CARRAY" />
+			<xs:enumeration value="VT_USERDEFINED" />
+			<xs:enumeration value="VT_LPSTR" />
+			<xs:enumeration value="VT_LPWSTR" />
+			<xs:enumeration value="VT_FILETIME" />
+			<xs:enumeration value="VT_BLOB" />
+			<xs:enumeration value="VT_STREAM" />
+			<xs:enumeration value="VT_STORAGE" />
+			<xs:enumeration value="VT_STREAMED_OBJECT" />
+			<xs:enumeration value="VT_STORED_OBJECT" />
+			<xs:enumeration value="VT_BLOB_OBJECT" />
+			<xs:enumeration value="VT_CF" />
+			<xs:enumeration value="VT_CLSID" />
+			<xs:enumeration value="VT_VECTOR" />
+			<xs:enumeration value="VT_ARRAY" />
+			<xs:enumeration value="VT_BYREF" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="alarmListModeEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="allAlarms" />
+			<xs:enumeration value="activeAlarms" />
+			<xs:enumeration value="pastAlarms" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="alarmListEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="all" />
+			<xs:enumeration value="unacknowledged" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="alignmentEnums">
+		<xs:annotation>
+			<xs:documentation>For positioning of a caption or image on an object in two dimensions</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="topLeft" />
+			<xs:enumeration value="topCenter" />
+			<xs:enumeration value="topRight" />
+			<xs:enumeration value="middleLeft" />
+			<xs:enumeration value="middleCenter" />
+			<xs:enumeration value="middleRight" />
+			<xs:enumeration value="bottomLeft" />
+			<xs:enumeration value="bottomCenter" />
+			<xs:enumeration value="bottomRight" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="animateColorBehaviorEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="solid" />
+			<xs:enumeration value="blink" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="autoRepeatDelayEnums">
+		<xs:annotation>
+			<xs:documentation>Time is in milliseconds</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:unsignedShort">
+			<xs:enumeration value="200" />
+			<xs:enumeration value="400" />
+			<xs:enumeration value="600" />
+			<xs:enumeration value="800" />
+			<xs:enumeration value="1000" />
+			<xs:enumeration value="1500" />
+			<xs:enumeration value="2000" />
+			<xs:enumeration value="2500" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="backStyleEnums">
+		<xs:annotation>
+			<xs:documentation>Opaque gradient or transparent background color</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:NMTOKEN">
+      <xs:enumeration value="solid" />
+      <xs:enumeration value="transparent" />
+      <xs:enumeration value="gradient" />      
+		</xs:restriction>
+	</xs:simpleType>
+    <xs:simpleType name="fillStyleEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="solid" />
+			<xs:enumeration value="gradient" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="borderStyleEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="none" />
+			<xs:enumeration value="raised" />
+			<xs:enumeration value="inset" />
+			<xs:enumeration value="raisedInset" />
+			<xs:enumeration value="line" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="buttonActionEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="normallyOpen" />
+			<xs:enumeration value="normallyClosed" />
+			<xs:enumeration value="value" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="buttonActionSEEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="setToOne" />
+			<xs:enumeration value="setToZero" />
+			<xs:enumeration value="toggle" />
+			<xs:enumeration value="setToOneOnPressZeroOnRelease" />
+			<xs:enumeration value="setToZeroOnPressOneOnRelease" />
+		</xs:restriction>
+	</xs:simpleType>
+	<!--yyyang-->
+	<xs:simpleType name="buttonSettingEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="okCancel" />
+			<xs:enumeration value="okOnly" />
+			<xs:enumeration value="YesNo" />
+			<xs:enumeration value="YesOnly" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="windowPositionEnums">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="Centered of screen" />
+			<xs:enumeration value="Top right corner" />
+			<xs:enumeration value="Top left corner" />
+			<xs:enumeration value="Bottom left corner" />
+			<xs:enumeration value="Bottom right corner" />
+			<xs:enumeration value="Centered in the top half" />
+			<xs:enumeration value="Centered in the bottom half" />
+			<xs:enumeration value="Centered on the left side" />
+			<xs:enumeration value="Centered on the right side" />
+			<xs:enumeration value="Next to calling object" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="buttonStyleEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="3d" />
+			<xs:enumeration value="recessed" />
+			<xs:enumeration value="raised" />
+			<xs:enumeration value="beveled" />
+                        <xs:enumeration value="noborder" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="centerOfRotationEnums">
+		<xs:union>
+			<xs:simpleType>
+				<xs:restriction base="xs:NMTOKEN">
+					<xs:enumeration value="topLeft" />
+					<xs:enumeration value="topCenter" />
+					<xs:enumeration value="topRight" />
+					<xs:enumeration value="middleLeft" />
+					<xs:enumeration value="middleCenter" />
+					<xs:enumeration value="middleRight" />
+					<xs:enumeration value="bottomLeft" />
+					<xs:enumeration value="bottomCenter" />
+					<xs:enumeration value="bottomRight" />
+				</xs:restriction>
+			</xs:simpleType>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:pattern value="\(-?[0-9]+,-?[0-9]+\)" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+	<xs:simpleType name="decimalPointEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="implicit" />
+			<xs:enumeration value="fixedPosition" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="directionEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="horizontal" />
+			<xs:enumeration value="vertical" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="displaySettingsSizeEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="useCurrentSize" />
+			<xs:enumeration value="specifySizeInPixels" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="displayTypeMEEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="replace" />
+			<xs:enumeration value="onTop" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="displayTypeSEEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="replace" />
+			<xs:enumeration value="overlay" />
+			<xs:enumeration value="onTop" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="enterKeyControlDelayEnums">
+		<xs:annotation>
+			<xs:documentation>Time is in milliseconds</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:unsignedShort">
+			<xs:enumeration value="0" />
+			<xs:enumeration value="200" />
+			<xs:enumeration value="400" />
+			<xs:enumeration value="600" />
+			<xs:enumeration value="800" />
+			<xs:enumeration value="1000" />
+			<xs:enumeration value="2000" />
+			<xs:enumeration value="3000" />
+			<xs:enumeration value="4000" />
+			<xs:enumeration value="5000" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="enterKeyHandshakeTimeEnums">
+		<xs:annotation>
+			<xs:documentation>Time is in seconds</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:unsignedByte">
+			<xs:enumeration value="1" />
+			<xs:enumeration value="2" />
+			<xs:enumeration value="3" />
+			<xs:enumeration value="4" />
+			<xs:enumeration value="5" />
+			<xs:enumeration value="6" />
+			<xs:enumeration value="7" />
+			<xs:enumeration value="8" />
+			<xs:enumeration value="9" />
+			<xs:enumeration value="10" />
+			<xs:enumeration value="15" />
+			<xs:enumeration value="20" />
+			<xs:enumeration value="25" />
+			<xs:enumeration value="30" />
+			<xs:enumeration value="35" />
+			<xs:enumeration value="40" />
+			<xs:enumeration value="45" />
+			<xs:enumeration value="50" />
+			<xs:enumeration value="55" />
+			<xs:enumeration value="60" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="exposeToVbaEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="notExposed" />
+			<xs:enumeration value="typeInfoExtension" />
+			<xs:enumeration value="vbaControl" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="expressionTrueStateEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="invisible" />
+			<xs:enumeration value="visible" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fillCharacterEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="zeroes" />
+			<xs:enumeration value="null" />
+			<xs:enumeration value="spaces" />
+			<xs:enumeration value="ff" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fillDirectionAnimateEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="left" />
+			<xs:enumeration value="right" />
+			<xs:enumeration value="up" />
+			<xs:enumeration value="down" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TouchActionEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="rectangular" />
+			<xs:enumeration value="irregular" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fillDirectionEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="bottomToTop" />
+			<xs:enumeration value="topToBottom" />
+			<xs:enumeration value="leftToRight" />
+			<xs:enumeration value="rightToLeft" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fillLeftWithEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="none" />
+			<xs:enumeration value="zeroes" />
+			<xs:enumeration value="spaces" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="fixedPositionEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="stripped" />
+			<xs:enumeration value="displayed" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="holdTimeEnums">
+		<xs:annotation>
+			<xs:documentation>Time is in milliseconds</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:unsignedShort">
+			<xs:enumeration value="50" />
+			<xs:enumeration value="250" />
+			<xs:enumeration value="500" />
+			<xs:enumeration value="750" />
+			<xs:enumeration value="1000" />
+			<xs:enumeration value="2000" />
+			<xs:enumeration value="3000" />
+			<xs:enumeration value="4000" />
+			<xs:enumeration value="5000" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="imageReferenceEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="noImage" />
+			<xs:enumeration value="useImageReference" />
+			<xs:enumeration value="importFile" />
+		</xs:restriction>
+	</xs:simpleType>
+  <xs:simpleType name="abilityImageTypeEnums">
+    <xs:restriction base="xs:NMTOKEN">
+      <xs:enumeration value="useGrayscale" />
+      <xs:enumeration value="useImageReference" />
+      <xs:enumeration value="importFile" />
+    </xs:restriction>
+  </xs:simpleType>
+	<xs:simpleType name="justificationEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="left" />
+			<xs:enumeration value="center" />
+			<xs:enumeration value="right" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="keyMEEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="unassigned" />
+			<xs:enumeration value="F1" />
+			<xs:enumeration value="F2" />
+			<xs:enumeration value="F3" />
+			<xs:enumeration value="F4" />
+			<xs:enumeration value="F5" />
+			<xs:enumeration value="F6" />
+			<xs:enumeration value="F7" />
+			<xs:enumeration value="F8" />
+			<xs:enumeration value="F9" />
+			<xs:enumeration value="F10" />
+			<xs:enumeration value="F11" />
+			<xs:enumeration value="F12" />
+			<xs:enumeration value="F13" />
+			<xs:enumeration value="F14" />
+			<xs:enumeration value="F15" />
+			<xs:enumeration value="F16" />
+			<xs:enumeration value="F17" />
+			<xs:enumeration value="F18" />
+			<xs:enumeration value="F19" />
+			<xs:enumeration value="F20" />
+			<xs:enumeration value="K1" />
+			<xs:enumeration value="K2" />
+			<xs:enumeration value="K3" />
+			<xs:enumeration value="K4" />
+			<xs:enumeration value="K5" />
+			<xs:enumeration value="K6" />
+			<xs:enumeration value="K7" />
+			<xs:enumeration value="K8" />
+			<xs:enumeration value="K9" />
+			<xs:enumeration value="K10" />
+			<xs:enumeration value="K11" />
+			<xs:enumeration value="K12" />
+			<xs:enumeration value="K13" />
+			<xs:enumeration value="K14" />
+			<xs:enumeration value="K15" />
+			<xs:enumeration value="K16" />
+			<xs:enumeration value="K17" />
+			<xs:enumeration value="K18" />
+			<xs:enumeration value="K19" />
+			<xs:enumeration value="K20" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="keySEEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="F1" />
+			<xs:enumeration value="F2" />
+			<xs:enumeration value="F3" />
+			<xs:enumeration value="F4" />
+			<xs:enumeration value="F5" />
+			<xs:enumeration value="F6" />
+			<xs:enumeration value="F7" />
+			<xs:enumeration value="F8" />
+			<xs:enumeration value="F9" />
+			<xs:enumeration value="F10" />
+			<xs:enumeration value="F11" />
+			<xs:enumeration value="F12" />
+			<xs:enumeration value="tab" />
+			<xs:enumeration value="downArrow" />
+			<xs:enumeration value="end" />
+			<xs:enumeration value="enter" />
+			<xs:enumeration value="home" />
+			<xs:enumeration value="leftArrow" />
+			<xs:enumeration value="pageDown" />
+			<xs:enumeration value="pageUp" />
+			<xs:enumeration value="rightArrow" />
+			<xs:enumeration value="upArrow" />
+			<xs:enumeration value="leftMouseButton" />
+			<xs:enumeration value="middleMouseButton" />
+			<xs:enumeration value="rightMouseButton" />
+			<xs:enumeration value="A" />
+			<xs:enumeration value="B" />
+			<xs:enumeration value="C" />
+			<xs:enumeration value="D" />
+			<xs:enumeration value="E" />
+			<xs:enumeration value="F" />
+			<xs:enumeration value="G" />
+			<xs:enumeration value="H" />
+			<xs:enumeration value="I" />
+			<xs:enumeration value="J" />
+			<xs:enumeration value="K" />
+			<xs:enumeration value="L" />
+			<xs:enumeration value="M" />
+			<xs:enumeration value="N" />
+			<xs:enumeration value="O" />
+			<xs:enumeration value="P" />
+			<xs:enumeration value="Q" />
+			<xs:enumeration value="R" />
+			<xs:enumeration value="S" />
+			<xs:enumeration value="T" />
+			<xs:enumeration value="U" />
+			<xs:enumeration value="V" />
+			<xs:enumeration value="W" />
+			<xs:enumeration value="X" />
+			<xs:enumeration value="Y" />
+			<xs:enumeration value="Z" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="leadingCharacterEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="blanks" />
+			<xs:enumeration value="zeroes" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="lineStyleEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="none" />
+			<xs:enumeration value="solid" />
+			<xs:enumeration value="dash" />
+			<xs:enumeration value="dot" />
+			<xs:enumeration value="dashDot" />
+			<xs:enumeration value="dashDotDot" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="parameterTypeEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="parameterFile" />
+			<xs:enumeration value="parameterList" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="linkAnimationEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="linkWithExpression" />
+			<xs:enumeration value="linkWithoutExpression" />
+			<xs:enumeration value="doNotLink" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="maximumTagUpdateRateEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="0.05" />
+			<xs:enumeration value="0.1" />
+			<xs:enumeration value="0.25" />
+			<xs:enumeration value="0.5" />
+			<xs:enumeration value="1" />
+			<xs:enumeration value="2" />
+			<xs:enumeration value="5" />
+			<xs:enumeration value="10" />
+			<xs:enumeration value="60" />
+			<xs:enumeration value="120" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="nextStateBasedOnEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="currentState" />
+			<xs:enumeration value="valueControl" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="numericFormatEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="decimal" />
+			<xs:enumeration value="hexadecimal" />
+			<xs:enumeration value="octal" />
+			<xs:enumeration value="binary" />
+			<xs:enumeration value="floatingPoint" />
+			<xs:enumeration value="showExponent" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="numericOverflowEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="fillWithAsterisks" />
+			<xs:enumeration value="showExponent" />
+			<xs:enumeration value="roundValue" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="numericPopupEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="none" />
+			<xs:enumeration value="keypad" />
+			<xs:enumeration value="scratchpad" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="patternStyleEnums">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="none" />
+			<xs:enumeration value="dots" />
+			<xs:enumeration value="checks" />
+			<xs:enumeration value="smallBoxes" />
+			<xs:enumeration value="mediumBoxes" />
+			<xs:enumeration value="largeBoxes" />
+			<xs:enumeration value="vLines" />
+			<xs:enumeration value="wideVLines" />
+			<xs:enumeration value="hLines" />
+			<xs:enumeration value="wideHLines" />
+			<xs:enumeration value="rDiagonal" />
+			<xs:enumeration value="wideRDiagonal" />
+			<xs:enumeration value="lDiagonal" />
+			<xs:enumeration value="wideLDiagonal" />
+			<xs:enumeration value="hatch" />
+			<xs:enumeration value="bricks" />
+			<xs:enumeration value="ovals" />
+			<xs:enumeration value="diamonds" />
+			<xs:enumeration value="scales" />
+			<xs:enumeration value="waves" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="positionEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="useCurrentPosition" />
+			<xs:enumeration value="specifyPositionInPixels" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="printTypeEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="all" />
+			<xs:enumeration value="active" />
+			<xs:enumeration value="past" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="propertyEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="lowEU" />
+			<xs:enumeration value="highEU" />
+			<xs:enumeration value="contactValue" />
+			<xs:enumeration value="EU" />
+			<xs:enumeration value="tagName" />
+			<xs:enumeration value="tagDescription" />
+			<xs:enumeration value="contactCloseLabel" />
+			<xs:enumeration value="contactOpenLabel" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="rampTypeEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="up" />
+			<xs:enumeration value="down" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="resetEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="nonZeroValue" />
+			<xs:enumeration value="zeroToNonZeroTransition" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="securityCodeEnums">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="*" />
+			<xs:enumeration value="A" />
+			<xs:enumeration value="B" />
+			<xs:enumeration value="C" />
+			<xs:enumeration value="D" />
+			<xs:enumeration value="E" />
+			<xs:enumeration value="F" />
+			<xs:enumeration value="G" />
+			<xs:enumeration value="H" />
+			<xs:enumeration value="I" />
+			<xs:enumeration value="J" />
+			<xs:enumeration value="K" />
+			<xs:enumeration value="L" />
+			<xs:enumeration value="M" />
+			<xs:enumeration value="N" />
+			<xs:enumeration value="O" />
+			<xs:enumeration value="P" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="sendPressToEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="objectWithFocus" />
+			<xs:enumeration value="linkedObject" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="shapeEnums">
+		<xs:annotation>
+			<xs:documentation>Circle, ellipse or rectangle</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="rectangle" />
+			<xs:enumeration value="circle" />
+			<xs:enumeration value="ellipse" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="stringPopupEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="scratchpad" />
+			<xs:enumeration value="keyboard" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="sweepStyleEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="point" />
+			<xs:enumeration value="fill" />
+      <xs:enumeration value="gradient" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="thresholdTypeEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="value" />
+			<xs:enumeration value="percentage" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="tickDirectionEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="left" />
+			<xs:enumeration value="right" />
+			<xs:enumeration value="up" />
+			<xs:enumeration value="down" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="timeAndDateFormatEnums">
+		<xs:annotation>
+			<xs:documentation>Short and long date formats combined with an AM/PM time format</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="shortDate" />
+			<xs:enumeration value="longDate" />
+			<xs:enumeration value="shortDateTime" />
+			<xs:enumeration value="longDateTime" />
+			<xs:enumeration value="time" />
+			<xs:enumeration value="timeShortDate" />
+			<xs:enumeration value="timeLongDate" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="triggerTypeEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="value" />
+			<xs:enumeration value="LSB" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="truncationEnums">
+		<xs:annotation>
+			<xs:documentation>Word or character truncation</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="word" />
+			<xs:enumeration value="character" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="verticalJustificationEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="top" />
+			<xs:enumeration value="middle" />
+			<xs:enumeration value="bottom" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="whenResizedEnums">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="pan" />
+			<xs:enumeration value="scale" />
+		</xs:restriction>
+	</xs:simpleType>
+  <xs:simpleType name="gradientDirectionEnums">
+    <xs:restriction base="xs:NMTOKEN">
+      <xs:enumeration value="gradientDirectionHorizontal" />
+      <xs:enumeration value="gradientDirectionVertical" />
+      <xs:enumeration value="gradientDirectionDiagonalUp" />
+      <xs:enumeration value="gradientDirectionDiagonalDown" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="gradientShadingStyleEnums">
+    <xs:restriction base="xs:NMTOKEN">
+      <xs:enumeration value="gradientHorizontalFromRight" />
+      <xs:enumeration value="gradientHorizontalFromLeft" />
+      <xs:enumeration value="gradientHorizontalFromInside" />
+      <xs:enumeration value="gradientHorizontalFromOutside" />
+      <xs:enumeration value="gradientVerticalFromBottom" />
+      <xs:enumeration value="gradientVerticalFromTop" />
+      <xs:enumeration value="gradientVerticalFromInside" />
+      <xs:enumeration value="gradientVerticalFromOutside" />
+      <xs:enumeration value="gradientDiagonalUpFromRight" />
+      <xs:enumeration value="gradientDiagonalUpFromLeft" />
+      <xs:enumeration value="gradientDiagonalUpFromInside" />
+      <xs:enumeration value="gradientDiagonalUpFromOutside" />
+      <xs:enumeration value="gradientDiagonalDownFromLeft" />
+      <xs:enumeration value="gradientDiagonalDownFromRight" />
+      <xs:enumeration value="gradientDiagonalDownFromInside" />
+      <xs:enumeration value="gradientDiagonalDownFromOutside" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ESDomainNameTypeConstants">
+    <xs:restriction base="xs:NMTOKEN">
+      <xs:enumeration value="ESDomainNameConstant" />
+      <xs:enumeration value="ESDomainNameVariable" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="DynamicDecimalTypeConstants">
+    <xs:restriction base="xs:NMTOKEN">
+      <xs:enumeration value="dynamic" />
+      <xs:enumeration value="fixed" />
+    </xs:restriction>
+  </xs:simpleType>
+	<!-- Attributes -->
+	<xs:attribute name="access" type="accessEnums" />
+	<xs:attribute name="action" type="actionEnums" />
+	<xs:attribute name="alarmListMode" type="alarmListModeEnums" />
+	<xs:attribute name="alignment" type="alignmentEnums" />
+	<xs:attribute name="allowMultipleRunningCopies" type="xs:boolean" />
+	<xs:attribute name="allowResizing" type="xs:boolean" />
+	<xs:attribute name="alwaysUpdating" type="xs:boolean" />
+	<xs:attribute name="angle" type="xs:double" />
+	<xs:attribute name="audio" type="xs:boolean" />
+	<xs:attribute name="autoRepeatDelay" type="autoRepeatDelayEnums" />
+	<xs:attribute name="autoRepeatRate" type="autoRepeatRateType" />
+	<xs:attribute name="backBehavior" type="animateColorBehaviorEnums" />
+	<xs:attribute name="backColor" type="colorType" />
+	<xs:attribute name="backColor1" type="colorType" />
+	<xs:attribute name="backColor2" type="colorType" />
+	<xs:attribute name="backStyle" type="backStyleEnums" />			
+  <xs:attribute name="fillStyle" type="fillStyleEnums" />
+	<xs:attribute name="beepOnPress" type="xs:boolean" />
+	<xs:attribute name="bevelWidth" type="bevelWidthType" />
+	<xs:attribute name="blink" type="xs:boolean" />
+	<xs:attribute name="blinkRate" type="blinkRateType" />
+	<xs:attribute name="bold" type="xs:boolean" />
+	<xs:attribute name="borderColor" type="colorType" />
+	<xs:attribute name="borderStyle" type="borderStyleEnums" />
+	<xs:attribute name="borderUsesBackColor" type="xs:boolean" />
+	<xs:attribute name="borderWidth" type="positiveShort" />
+	<xs:attribute name="buttonAction" type="buttonActionEnums" />
+	<xs:attribute name="buttonValue" type="intType" />
+	<xs:attribute name="cacheAfterDisplaying" type="xs:boolean" />
+	<xs:attribute name="caption" type="captionType" />
+    <xs:attribute name="captionOnBorder" type="xs:boolean" />
+	<xs:attribute name="captionTruncate" type="truncationEnums" />
+	<xs:attribute name="captureCursor" type="xs:boolean" />
+	<xs:attribute name="cannotBeReplaced" type="xs:boolean" />
+	<xs:attribute name="centerOfRotation" type="centerOfRotationEnums" />
+	<xs:attribute name="characterOffset" type="characterOffsetType" />
+	<xs:attribute name="classId" type="classIdType" />
+	<xs:attribute name="closeValue" type="xs:integer" />
+	<xs:attribute name="color" type="colorType" />
+	<xs:attribute name="continuouslyUpdate" type="xs:boolean" />
+	<xs:attribute name="inputSecurityCode" type="securityCodeEnums" />
+	<xs:attribute name="displayOnScreenKeypad" type="xs:boolean" />
+	<xs:attribute name="keypadCustomCaption" type="xs:string" />
+	<xs:attribute name="controlModifier" type="xs:boolean" />
+	<xs:attribute name="currentStateId" type="stateId1999Type" />
+	<xs:attribute name="currentTag" type="xs:string" />
+	<xs:attribute name="data" type="xs:base64Binary" />
+	<xs:attribute name="decimalPlaces" type="digitsAfterDecimalPointType" />
+	<xs:attribute name="decimalPoint" type="decimalPointEnums" />
+	<xs:attribute name="defaultData" type="defaultDataType" />
+	<xs:attribute name="defaultName" type="defaultNameType" />
+	<xs:attribute name="description" type="descriptionType" />
+	<xs:attribute name="digitsAfterDecimalPoint" type="digitsAfterDecimalPointType" />
+	<xs:attribute name="direction" type="directionEnums" />
+	<xs:attribute name="disableFocusHighlight" type="xs:boolean" />
+	<xs:attribute name="disableInitialInputFocus" type="xs:boolean" />
+	<xs:attribute name="discardInputOnFocusLost" type="xs:boolean" />
+	<xs:attribute name="display" type="componentType" />
+	<xs:attribute name="displayLeftPosition" type="xs:double" />
+	<xs:attribute name="displayOnScreenKeyboard" type="xs:boolean" />
+	<xs:attribute name="allowButtonActionOnError" type="xs:boolean" />
+	<xs:attribute name="displayPosition" type="xs:boolean" />
+	<xs:attribute name="displayTopPosition" type="xs:double" />
+	<xs:attribute name="downSameAsUp" type="xs:boolean" />
+	<xs:attribute name="endAngle" type="angleType" />
+	<xs:attribute name="enterKeyControlDelay" type="enterKeyControlDelayEnums" />
+	<xs:attribute name="enterKeyHandshakeTime" type="enterKeyHandshakeTimeEnums" />
+	<xs:attribute name="enterKeyHoldTime" type="holdTimeEnums" />
+	<xs:attribute name="exposeToVba" type="exposeToVbaEnums" />
+  <xs:attribute name="showDisabledState" type="xs:boolean" />
+  <xs:attribute name="expression" type="abilityExpressionType" />
+  <xs:attribute name="enabledWhenExpressionIsTrue" type="xs:boolean" />
+  <xs:attribute name="disabledImageType" type="abilityImageTypeEnums" />
+  <xs:attribute name="imageRef" type="abilityImageRefType" />
+  <xs:attribute name="importFile" type="abilityImportFileType" />
+  <xs:attribute name="scaleImage" type="xs:boolean" />
+	<xs:attribute name="expressionTrueState" type="expressionTrueStateEnums" />
+	<xs:attribute name="fieldLength" type="fieldLength999Type" />
+	<xs:attribute name="fieldNotSelectedFillColor" type="colorType" />
+	<xs:attribute name="fieldNotSelectedTextColor" type="colorType" />
+	<xs:attribute name="fieldSelectedFillColor" type="colorType" />
+	<xs:attribute name="fieldSelectedTextColor" type="colorType" />
+	<xs:attribute name="fieldInErrorNotSelectedTextColor" type="colorType" />
+	<xs:attribute name="fieldInErrorNotSelectedFillColor" type="colorType" />
+	<xs:attribute name="fieldInErrorSelectedTextColor" type="colorType" />
+	<xs:attribute name="fieldInErrorSelectedFillColor" type="colorType" />
+	<xs:attribute name="fillCharacter" type="fillCharacterEnums" />
+	<xs:attribute name="fillColor" type="colorType" />
+    <xs:attribute name="fillColorMode" type="xs:double" />
+	<xs:attribute name="fillLeftWith" type="fillLeftWithEnums" />
+	<xs:attribute name="fillMax" type="fillRangeType" />
+	<xs:attribute name="fillMin" type="fillRangeType" />
+	<xs:attribute name="fixedPosition" type="fixedPositionEnums" />
+	<xs:attribute name="focusHighlight" type="xs:boolean" />
+	<xs:attribute name="focusHighlightColor" type="colorType" />
+	<xs:attribute name="fontFamily" type="xs:string" />
+	<xs:attribute name="fontSize" type="fontSizeType" />
+	<xs:attribute name="charHeight" type="characterSize" />
+	<xs:attribute name="charWidth" type="characterSize" />
+	<xs:attribute name="foreBehavior" type="animateColorBehaviorEnums" />
+	<xs:attribute name="foreColor" type="colorType" />
+	<xs:attribute name="foreColor1" type="colorType" />
+	<xs:attribute name="foreColor2" type="colorType" />
+	<xs:attribute name="format" type="numericFormatEnums" />
+	<xs:attribute name="formatAckTime" type="timeAndDateFormatEnums" />
+	<xs:attribute name="formatAlarmTime" type="timeAndDateFormatEnums" />
+	<xs:attribute name="handshakeReset" type="resetEnums" />
+	<xs:attribute name="headerBackColor" type="colorType" />
+	<xs:attribute name="headerForeColor" type="colorType" />
+	<xs:attribute name="height" type="positiveShort" />
+	<xs:attribute name="highlightWhenCursorPassesOver" type="xs:boolean" />
+	<xs:attribute name="highlightColor" type="colorType" />
+	<xs:attribute name="highlightOnFocus" type="xs:boolean" />
+	<xs:attribute name="holdTime" type="holdTimeEnums" />
+	<xs:attribute name="horizontalChangeMax" type="xs:double" />
+	<xs:attribute name="horizontalChangeMin" type="xs:double" />
+	<xs:attribute name="horizontalMargin" type="nonNegativeShort" />
+	<xs:attribute name="horizontalOffsetMax" type="xs:double" />
+	<xs:attribute name="horizontalOffsetMin" type="xs:double" />
+	<xs:attribute name="imageBackColor" type="colorType" />
+	<xs:attribute name="imageBackStyle" type="backStyleEnums" />
+	<xs:attribute name="imageBlink" type="xs:boolean" />
+	<xs:attribute name="imageColor" type="colorType" />
+	<xs:attribute name="imageData" type="xs:base64Binary" />
+	<xs:attribute name="imageFile" type="imageFileType" />
+	<xs:attribute name="imageName" type="componentType" />
+	<xs:attribute name="imageReference" type="imageReferenceEnums" />
+  <xs:attribute name="InactiveSameAsActive" type="xs:boolean" />
+	<xs:attribute name="insideOnly" type="xs:boolean" />
+	<xs:attribute name="interactiveHighlightColor" type="colorType" />
+	<xs:attribute name="italic" type="xs:boolean" />
+	<xs:attribute name="justification" type="justificationEnums" />
+	<!--yyyang-->
+	<xs:attribute name="buttonSetting" type="buttonSettingEnums" />
+    <xs:attribute name="windowPosition" type="windowPositionEnums" />	
+	<xs:attribute name="keepAtBack" type="xs:boolean" />
+	<xs:attribute name="keyAssignment" type="keyMEEnums" />
+	<xs:attribute name="keyNavigation" type="xs:boolean" />
+	<xs:attribute name="latchResetType" type="resetEnums" />
+	<xs:attribute name="label" type="xs:string" />
+	<xs:attribute name="leadingCharacter" type="leadingCharacterEnums" />
+	<xs:attribute name="left" type="xs:short" />
+	<xs:attribute name="legendColor" type="colorType" />
+	<xs:attribute name="line" type="lineType" />
+	<xs:attribute name="limitValue" type="xs:double" />
+	<xs:attribute name="lineStyle" type="lineStyleEnums" />
+	<xs:attribute name="lineWidth" type="positiveShort" />
+	<xs:attribute name="linkedObject" type="xs:string" />
+	<xs:attribute name="listType" type="alarmListEnums" />
+	<xs:attribute name="majorTicks" type="majorTicksType" />
+	<xs:attribute name="maximizeButton" type="xs:boolean" />
+	<xs:attribute name="maximumTagUpdateRate" type="maximumTagUpdateRateEnums" />
+	<xs:attribute name="maxValue" type="xs:double" />
+	<xs:attribute name="messageFile" type="componentType" />
+  	<xs:attribute name="UseVariableMesssageFile" type="xs:boolean"/>
+  	<xs:attribute name="UseEchoMessage" type="xs:boolean"/>
+	<xs:attribute name="minimizeButton" type="xs:boolean" />
+	<xs:attribute name="minorTicks" type="minorTicksType" />
+	<xs:attribute name="minValue" type="xs:double" />
+	<xs:attribute name="name" type="objectNameType" />
+	<xs:attribute name="needleWidth" type="positiveShort" />
+	<xs:attribute name="needleColor" type="colorType" />
+	<xs:attribute name="nextStateBasedOn" type="nextStateBasedOnEnums" />
+	<xs:attribute name="numberOfDigits" type="numberOfDigitsType" />
+	<xs:attribute name="numberOfInputCharacters" type="stringLineLengthType" />
+	<xs:attribute name="numberOfThresholds" type="numberOfThresholdsType" />
+	<xs:attribute name="numericPopup" type="numericPopupEnums" />
+	<xs:attribute name="objectName" type="xs:IDREF" />
+	<xs:attribute name="offsetHeight" type="xs:double" />
+	<xs:attribute name="offsetWidth" type="xs:double" />
+	<xs:attribute name="oleVerb" type="xs:string" />
+	<xs:attribute name="overflow" type="numericOverflowEnums" />
+	<xs:attribute name="parameterFile" type="componentType" />
+	<xs:attribute name="parameterList" type="xs:string" />
+	<xs:attribute name="parameterType" type="parameterTypeEnums" />
+	<xs:attribute name="path" type="pathType" />
+	<xs:attribute name="patternColor" type="colorType" />
+	<xs:attribute name="patternStyle" type="patternStyleEnums" />
+	<xs:attribute name="pointerHighlight" type="xs:boolean" />
+	<xs:attribute name="polygon" type="polygonType" />
+	<xs:attribute name="position" type="positionEnums" />
+	<xs:attribute name="positionX" type="xs:integer" />
+	<xs:attribute name="positionY" type="xs:integer" />
+	<xs:attribute name="pressAction" type="commandStringType" />
+	<xs:attribute name="confirmAction" type="xs:boolean" />
+	<xs:attribute name="printType" type="printTypeEnums" />
+	<xs:attribute name="property" type="propertyEnums" />
+	<xs:attribute name="propertyName" type="xs:string" />
+	<xs:attribute name="propertyType" type="activeXPropertyTypeEnums" />
+	<xs:attribute name="propertyValue" type="xs:anySimpleType" />
+	<xs:attribute name="queueNewAlarms" type="xs:boolean" />
+	<xs:attribute name="rampType" type="rampTypeEnums" />
+	<xs:attribute name="rampValue" type="xs:double" />
+	<xs:attribute name="useVariableLimit" type="xs:boolean" />
+	<xs:attribute name="useVariableRamp" type="xs:boolean" />	
+	<xs:attribute name="releaseAction" type="commandStringType" />
+	<xs:attribute name="repeatAction" type="commandStringType" />
+	<xs:attribute name="repeatRate" type="xs:double" />
+	<xs:attribute name="rotationAngle" type="xs:double" />
+	<xs:attribute name="rotationMax" type="xs:double" />
+	<xs:attribute name="rotationMin" type="xs:double" />
+	<xs:attribute name="roundingHeight" type="intType" />
+	<xs:attribute name="roundingWidth" type="intType" />
+	<xs:attribute name="scaled" type="xs:boolean" />
+	<xs:attribute name="scaleHeight" type="xs:double" />
+	<xs:attribute name="scaleWidth" type="xs:double" />
+	<xs:attribute name="securityCode" type="securityCodeEnums" />
+	<xs:attribute name="selectionBackColor" type="colorType" />
+	<xs:attribute name="selectionForeColor" type="colorType" />
+	<xs:attribute name="sendPressTo" type="sendPressToEnums" />
+	<xs:attribute name="setLastStateId" type="setLastStateId2000Type" />
+	<xs:attribute name="shape" type="shapeEnums" />
+	<xs:attribute name="shearHeight" type="xs:double" />
+	<xs:attribute name="shearWidth" type="xs:double" />
+	<xs:attribute name="shiftModifier" type="xs:boolean" />
+	<xs:attribute name="showLastAcquiredValue" type="xs:boolean" />
+	<xs:attribute name="showLegend" type="xs:boolean" />
+	<xs:attribute name="shutdownCommand" type="commandStringType" />
+	<xs:attribute name="size" type="displaySettingsSizeEnums" />
+	<xs:attribute name="sizeToFit" type="xs:boolean" />
+	<xs:attribute name="sizeToMainWindow" type="xs:boolean" />
+	<xs:attribute name="startAngle" type="angleType" />
+	<xs:attribute name="startupCommand" type="commandStringType" />
+	<xs:attribute name="startHeight" type="startHeightType" />
+	<xs:attribute name="startWidth" type="startWidthType" />
+	<xs:attribute name="stateId" type="stateId1999Type" />
+	<xs:attribute name="strikethrough" type="xs:boolean" />
+	<xs:attribute name="stringPopup" type="stringPopupEnums" />
+	<xs:attribute name="style" type="buttonStyleEnums" />
+	<xs:attribute name="sweepStyle" type="sweepStyleEnums" />
+	<xs:attribute name="systemMenu" type="xs:boolean" />
+	<xs:attribute name="tabIndex" type="xs:nonNegativeInteger" />
+	<xs:attribute name="tag" type="tagType" />
+	<xs:attribute name="takeFocusOnPress" type="xs:boolean" />
+	<xs:attribute name="thresholdIndex" type="thresholdIndexType" />
+	<xs:attribute name="thresholdType" type="thresholdTypeEnums" />
+	<xs:attribute name="thresholdValue" type="xs:double" />
+	<xs:attribute name="tickDirection" type="tickDirectionEnums" />
+	<xs:attribute name="timeAndDateFormat" type="timeAndDateFormatEnums" />
+	<xs:attribute name="titleBar" type="xs:boolean" />
+	<xs:attribute name="titleBarText" type="titleBarTextType" />
+	<xs:attribute name="toolTipText" type="xs:string" />
+	<xs:attribute name="top" type="xs:short" />
+	<xs:attribute name="touch" type="xs:boolean" />
+	<xs:attribute name="TrackName" type="xs:string" />
+        <xs:attribute name="TrackScreenForNavigation" type="xs:boolean" />
+	<xs:attribute name="triggerType" type="triggerTypeEnums" />
+	<xs:attribute name="underline" type="xs:boolean" />
+	<xs:attribute name="useDisplayName" type="xs:boolean" />
+	<xs:attribute name="usesDisplayName" type="xs:boolean" />
+	<xs:attribute name="vba" type="xs:anyURI" />
+	<xs:attribute name="verticalChangeMax" type="xs:double" />
+	<xs:attribute name="verticalChangeMin" type="xs:double" />
+	<xs:attribute name="verticalMargin" type="nonNegativeShort" />
+	<xs:attribute name="verticalOffsetMax" type="xs:double" />
+	<xs:attribute name="verticalOffsetMin" type="xs:double" />
+	<xs:attribute name="visible" type="xs:boolean" />
+	<xs:attribute name="wallpaper" type="xs:boolean" />
+	<xs:attribute name="whenResized" type="whenResizedEnums" />
+	<xs:attribute name="width" type="positiveShort" />
+	<xs:attribute name="widthTriggerLabel" type="fieldLength999999Type" />
+	<xs:attribute name="widthTriggerValue" type="fieldLength999999Type" />
+	<xs:attribute name="wordWrap" type="xs:boolean" />
+	<xs:attribute name="wrapAround" type="xs:boolean" />
+	<xs:attribute name="writeOnClose" type="xs:boolean" />
+	<xs:attribute name="writeOnEnter" type="xs:boolean" />
+  <xs:attribute name="endColor" type="colorType" />
+  <xs:attribute name="gradientStop" type="xs:short" />
+  <xs:attribute name="gradientDirection" type="gradientDirectionEnums" />
+  <xs:attribute name="gradientShadingStyle" type="gradientShadingStyleEnums" />
+  <xs:attribute name="fillEndColor" type="colorType" />
+  <xs:attribute name="fillGradientStop" type="xs:short" />
+  <xs:attribute name="fillGradientDirection" type="gradientDirectionEnums" />
+  <xs:attribute name="fillGradientShadingStyle" type="gradientShadingStyleEnums" />
+  <xs:attribute name="thresh1EndColor" type="colorType" />
+  <xs:attribute name="thresh1GradientStop" type="xs:short" />
+  <xs:attribute name="thresh1GradientDirection" type="gradientDirectionEnums" />
+  <xs:attribute name="thresh1GradientShadingStyle" type="gradientShadingStyleEnums" />
+  <xs:attribute name="thresh2EndColor" type="colorType" />
+  <xs:attribute name="thresh2GradientStop" type="xs:short" />
+  <xs:attribute name="thresh2GradientDirection" type="gradientDirectionEnums" />
+  <xs:attribute name="thresh2GradientShadingStyle" type="gradientShadingStyleEnums" />
+  <xs:attribute name="useGradientStyle" type="xs:boolean" />
+  <xs:attribute name="showDigitGrouping" type="xs:boolean"/>
+  <xs:attribute name="RequireElectronicSignature" type="xs:boolean" />
+  <xs:attribute name="AllowBlankComment" type="xs:boolean" />
+  <xs:attribute name="RequireReAuthentication" type="xs:boolean" />
+  <xs:attribute name="RequireCounterSignature" type="xs:boolean" />
+  <xs:attribute name="ESDomainNameVisible" type="xs:boolean" />
+  <xs:attribute name="ESDomainNameDisable" type="xs:boolean" />
+  <xs:attribute name="AuthorizedGroup" type="xs:string" />
+  <xs:attribute name="ESDomainName" type="xs:string" />
+  <xs:attribute name="VariableDomainName" type="xs:string" />
+  <xs:attribute name="ESDomainNameType" type="ESDomainNameTypeConstants" />
+  <xs:attribute name="decimalPlaceType" type="DynamicDecimalTypeConstants" />
+	<!-- Attribute groups -->
+	<xs:attributeGroup name="autoRepeatProperties">
+		<xs:attribute ref="autoRepeatDelay" />
+		<xs:attribute ref="autoRepeatRate" />
+	</xs:attributeGroup>
+	<xs:attributeGroup name="backgroundProperties">
+		<xs:attribute ref="backColor" />
+		<xs:attribute ref="backStyle" />
+	</xs:attributeGroup>
+	<xs:attributeGroup name="borderProperties">
+		<xs:attribute ref="borderColor" />
+		<xs:attribute ref="borderStyle" />
+		<xs:attribute ref="borderWidth" />
+		<xs:attribute ref="borderUsesBackColor" />
+	</xs:attributeGroup>
+	<xs:attributeGroup name="enterKeyProperties">
+		<xs:attribute ref="enterKeyControlDelay" />
+		<xs:attribute ref="enterKeyHandshakeTime" />
+		<xs:attribute ref="enterKeyHoldTime" />
+		<xs:attribute ref="handshakeReset" />
+	</xs:attributeGroup>
+	<xs:attributeGroup name="fontProperties">
+		<xs:attribute ref="fontFamily" />
+		<xs:attribute ref="fontSize" />
+		<xs:attribute ref="bold" />
+		<xs:attribute ref="underline" />
+		<xs:attribute ref="italic" />
+		<xs:attribute ref="strikethrough" />
+	</xs:attributeGroup>
+	<xs:attributeGroup name="fontScaledProperties">
+		<xs:attribute ref="fontFamily" />
+		<xs:attribute ref="fontSize" />
+		<xs:attribute ref="charHeight" />
+		<xs:attribute ref="charWidth" />
+		<xs:attribute ref="bold" />
+		<xs:attribute ref="underline" />
+		<xs:attribute ref="italic" />
+		<xs:attribute ref="strikethrough" />
+	</xs:attributeGroup>
+	<xs:attributeGroup name="lineProperties">
+		<xs:attribute ref="lineStyle" />
+		<xs:attribute ref="lineWidth" />
+	</xs:attributeGroup>
+	<xs:attributeGroup name="patternProperties">
+		<xs:attribute ref="patternColor" />
+		<xs:attribute ref="patternStyle" />
+	</xs:attributeGroup>
+	<xs:attributeGroup name="referenceObjectProperties">
+		<xs:attribute name="isReferenceObject" type="xs:boolean" />
+		<xs:attribute name="linkSize" type="xs:boolean" />
+		<xs:attribute name="linkConnections" type="xs:boolean" />
+		<xs:attribute name="linkAnimations" type="linkAnimationEnums" />
+		<xs:attribute name="linkBaseObject" type="linkBaseObjectType" />
+		<xs:attribute name="linkToolTipText" type="xs:boolean" />
+	</xs:attributeGroup>
+	<xs:attributeGroup name="SECommon">
+		<xs:attribute ref="toolTipText" />
+		<xs:attribute ref="exposeToVba" />
+	</xs:attributeGroup>
+	<xs:attributeGroup name="selectionColorProperties">
+		<xs:attribute ref="selectionForeColor" />
+		<xs:attribute ref="selectionBackColor" />
+	</xs:attributeGroup>
+	<xs:attributeGroup name="touchMarginProperties">
+		<xs:attribute ref="horizontalMargin" />
+		<xs:attribute ref="verticalMargin" />
+		<xs:attribute ref="touch" />
+		<xs:attribute ref="keyAssignment" />
+	</xs:attributeGroup>
+  <xs:attributeGroup name="gradientProperties">
+    <xs:attribute ref="endColor" />
+    <xs:attribute ref="gradientStop" />
+    <xs:attribute ref="gradientDirection" />
+    <xs:attribute ref="gradientShadingStyle" />
+  </xs:attributeGroup>
+  <xs:attributeGroup name="gradientFillProperties">
+    <xs:attribute ref="fillEndColor" />
+    <xs:attribute ref="fillGradientStop" />
+    <xs:attribute ref="fillGradientDirection" />
+    <xs:attribute ref="fillGradientShadingStyle" />
+  </xs:attributeGroup>
+  <xs:attributeGroup name="gradientThresh1Properties">
+    <xs:attribute ref="thresh1EndColor" />
+    <xs:attribute ref="thresh1GradientStop" />
+    <xs:attribute ref="thresh1GradientDirection" />
+    <xs:attribute ref="thresh1GradientShadingStyle" />
+  </xs:attributeGroup>
+  <xs:attributeGroup name="gradientThresh2Properties">
+    <xs:attribute ref="thresh2EndColor" />
+    <xs:attribute ref="thresh2GradientStop" />
+    <xs:attribute ref="thresh2GradientDirection" />
+    <xs:attribute ref="thresh2GradientShadingStyle" />
+  </xs:attributeGroup>
+  <xs:attributeGroup name="eSignatureProperties">
+    <xs:attribute ref="RequireElectronicSignature" />
+    <xs:attribute ref="AllowBlankComment" />
+    <xs:attribute ref="RequireReAuthentication" />
+    <xs:attribute ref="RequireCounterSignature" />
+    <xs:attribute ref="ESDomainNameVisible" />
+    <xs:attribute ref="ESDomainNameDisable" />
+    <xs:attribute ref="AuthorizedGroup" />
+    <xs:attribute ref="ESDomainName" />
+    <xs:attribute ref="VariableDomainName" />
+    <xs:attribute ref="ESDomainNameType" />
+  </xs:attributeGroup>
+	<xs:complexType name="basicCaptionType">
+		<xs:attributeGroup ref="backgroundProperties" />
+		<xs:attributeGroup ref="fontProperties" />
+		<xs:attribute ref="caption" />
+		<xs:attribute ref="alignment" />
+		<xs:attribute ref="blink" />
+		<xs:attribute ref="color" />
+		<xs:attribute ref="wordWrap" />
+	</xs:complexType>
+	<xs:complexType name="basicImageType">
+		<xs:attributeGroup ref="backgroundProperties" />
+		<xs:attribute ref="alignment" />
+		<xs:attribute ref="blink" />
+		<xs:attribute ref="color" />
+		<xs:attribute ref="scaled" />
+		<xs:attribute ref="imageName" />
+	</xs:complexType>
+	<xs:complexType name="basicStateType">
+		<xs:sequence>
+			<xs:element name="caption" type="basicCaptionType" minOccurs="0" />
+			<xs:element name="imageSettings" type="basicImageType" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute name="value" type="xs:integer" />
+		<xs:attributeGroup ref="patternProperties" />
+    <xs:attributeGroup ref="gradientProperties" />
+		<xs:attribute ref="backColor" />
+		<xs:attribute ref="blink" />
+		<xs:attribute ref="borderColor" />
+		<xs:attribute ref="stateId" use="required" />
+	</xs:complexType>
+	<xs:complexType name="basicStates2001Type">
+		<xs:sequence>
+			<xs:element name="state" type="basicStateType" maxOccurs="2001" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="connectionType">
+		<xs:attribute name="name" type="connectionNameType" use="required" />
+		<xs:attribute name="expression" type="connectionExpressionType" use="required" />
+		<xs:attribute name="optionalExpression" type="connectionExpressionType" />
+	</xs:complexType>
+	<xs:complexType name="connectionsType">
+		<xs:sequence>
+			<xs:element name="connection" type="connectionType" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="basicDisplaySettingsType">
+		<xs:attribute ref="size" />
+		<xs:attribute name="width" type="displaySettingDimensionType" />
+		<xs:attribute name="height" type="displaySettingDimensionType" />
+		<xs:attribute ref="positionX" />
+		<xs:attribute ref="positionY" />
+		<xs:attribute ref="securityCode" />
+		<xs:attribute ref="backColor" />
+		<xs:attribute ref="titleBar" />
+		<xs:attribute ref="titleBarText" />
+		<xs:attribute ref="maximumTagUpdateRate" />
+		<xs:attribute ref="disableFocusHighlight" />
+		<xs:attribute ref="focusHighlightColor" />
+	</xs:complexType>
+	<xs:complexType name="animationsVisibilityType">
+		<xs:sequence>
+			<xs:element name="animateVisibility" type="animateVisibilityType" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="animationsAllMEType">
+		<xs:sequence>
+			<xs:element name="animateVisibility" type="animateVisibilityType" minOccurs="0" />
+			<xs:element name="animateRotation" type="animateRotationType" minOccurs="0" />
+			<xs:element name="animateWidth" type="animateWidthType" minOccurs="0" />
+			<xs:element name="animateHeight" type="animateHeightType" minOccurs="0" />
+			<xs:element name="animateHorizontalPosition" type="animateHorizontalPositionType" minOccurs="0" />
+			<xs:element name="animateVerticalPosition" type="animateVerticalPositionType" minOccurs="0" />
+			<xs:element name="animateHorizontalSlider" type="animateHorizontalSliderType" minOccurs="0" />
+			<xs:element name="animateVerticalSlider" type="animateVerticalSliderType" minOccurs="0" />
+			<xs:element name="animateFill" type="animateFillType" minOccurs="0" />
+			<xs:element name="animateColor" type="animateColorType" minOccurs="0" />
+			<xs:element name="animateHyperlink" type="animateHyperlinkType" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="animationsAllButRotMEType">
+		<xs:sequence>
+			<xs:element name="animateVisibility" type="animateVisibilityType" minOccurs="0" />
+			<xs:element name="animateWidth" type="animateWidthType" minOccurs="0" />
+			<xs:element name="animateHeight" type="animateHeightType" minOccurs="0" />
+			<xs:element name="animateHorizontalPosition" type="animateHorizontalPositionType" minOccurs="0" />
+			<xs:element name="animateVerticalPosition" type="animateVerticalPositionType" minOccurs="0" />
+			<xs:element name="animateHorizontalSlider" type="animateHorizontalSliderType" minOccurs="0" />
+			<xs:element name="animateVerticalSlider" type="animateVerticalSliderType" minOccurs="0" />
+			<xs:element name="animateFill" type="animateFillType" minOccurs="0" />
+			<xs:element name="animateColor" type="animateColorType" minOccurs="0" />
+			<xs:element name="animateHyperlink" type="animateHyperlinkType" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="animationsAllSEType">
+		<xs:sequence>
+			<xs:element name="animateVisibility" type="animateVisibilityType" minOccurs="0" />
+			<xs:element name="animateRotation" type="animateRotationType" minOccurs="0" />
+			<xs:element name="animateWidth" type="animateWidthType" minOccurs="0" />
+			<xs:element name="animateHeight" type="animateHeightType" minOccurs="0" />
+			<xs:element name="animateHorizontalPosition" type="animateHorizontalPositionType" minOccurs="0" />
+			<xs:element name="animateVerticalPosition" type="animateVerticalPositionType" minOccurs="0" />
+			<xs:element name="animateHorizontalSlider" type="animateHorizontalSliderType" minOccurs="0" />
+			<xs:element name="animateVerticalSlider" type="animateVerticalSliderType" minOccurs="0" />
+			<xs:element name="animateFill" type="animateFillType" minOccurs="0" />
+			<xs:element name="animateTouch" type="animateTouchSEType" minOccurs="0" />
+			<xs:element name="animateColor" type="animateColorType" minOccurs="0" />
+			<xs:element name="animateHyperlink" type="animateHyperlinkType" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="animationsAllButColorFillSEType">
+		<xs:sequence>
+			<xs:element name="animateVisibility" type="animateVisibilityType" minOccurs="0" />
+			<xs:element name="animateRotation" type="animateRotationType" minOccurs="0" />
+			<xs:element name="animateWidth" type="animateWidthType" minOccurs="0" />
+			<xs:element name="animateHeight" type="animateHeightType" minOccurs="0" />
+			<xs:element name="animateHorizontalPosition" type="animateHorizontalPositionType" minOccurs="0" />
+			<xs:element name="animateVerticalPosition" type="animateVerticalPositionType" minOccurs="0" />
+			<xs:element name="animateHorizontalSlider" type="animateHorizontalSliderType" minOccurs="0" />
+			<xs:element name="animateVerticalSlider" type="animateVerticalSliderType" minOccurs="0" />
+			<xs:element name="animateTouch" type="animateTouchSEType" minOccurs="0" />
+			<xs:element name="animateHyperlink" type="animateHyperlinkType" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="animationsSEButtonType">
+		<xs:sequence>
+			<xs:element name="animateVisibility" type="animateVisibilityType" minOccurs="0" />
+			<xs:element name="animateWidth" type="animateWidthType" minOccurs="0" />
+			<xs:element name="animateHeight" type="animateHeightType" minOccurs="0" />
+			<xs:element name="animateHorizontalPosition" type="animateHorizontalPositionType" minOccurs="0" />
+			<xs:element name="animateVerticalPosition" type="animateVerticalPositionType" minOccurs="0" />
+			<xs:element name="animateHorizontalSlider" type="animateHorizontalSliderType" minOccurs="0" />
+			<xs:element name="animateVerticalSlider" type="animateVerticalSliderType" minOccurs="0" />
+			<xs:element name="animateColor" type="animateColorType" minOccurs="0" />
+			<xs:element name="animateHyperlink" type="animateHyperlinkType" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="animateVisibilityType">
+		<xs:complexContent>
+			<xs:extension base="basicAnimateType">
+				<xs:attribute ref="expressionTrueState" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="animateRotationType">
+		<xs:complexContent>
+			<xs:extension base="expressionRangeAnimateType">
+				<xs:attribute ref="rotationMin" />
+				<xs:attribute ref="rotationMax" />
+				<xs:attribute ref="centerOfRotation" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="animateWidthType">
+		<xs:complexContent>
+			<xs:extension base="expressionRangeAnimateType">
+				<xs:attribute ref="horizontalChangeMin" />
+				<xs:attribute ref="horizontalChangeMax" />
+				<xs:attribute name="anchor" type="justificationEnums" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="animateHeightType">
+		<xs:complexContent>
+			<xs:extension base="expressionRangeAnimateType">
+				<xs:attribute ref="verticalChangeMin" />
+				<xs:attribute ref="verticalChangeMax" />
+				<xs:attribute name="anchor" type="verticalJustificationEnums" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="animateHorizontalPositionType">
+		<xs:complexContent>
+			<xs:extension base="expressionRangeAnimateType">
+				<xs:attribute ref="horizontalOffsetMin" />
+				<xs:attribute ref="horizontalOffsetMax" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="animateVerticalPositionType">
+		<xs:complexContent>
+			<xs:extension base="expressionRangeAnimateType">
+				<xs:attribute ref="verticalOffsetMin" />
+				<xs:attribute ref="verticalOffsetMax" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="animateHorizontalSliderType">
+		<xs:complexContent>
+			<xs:extension base="expressionRangeAnimateType">
+				<xs:attribute ref="horizontalOffsetMin" />
+				<xs:attribute ref="horizontalOffsetMax" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="animateVerticalSliderType">
+		<xs:complexContent>
+			<xs:extension base="expressionRangeAnimateType">
+				<xs:attribute ref="verticalOffsetMin" />
+				<xs:attribute ref="verticalOffsetMax" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="animateFillType">
+		<xs:complexContent>
+			<xs:extension base="expressionRangeAnimateType">
+				<xs:attribute ref="fillMin" />
+				<xs:attribute ref="fillMax" />
+				<xs:attribute name="fillDirection" type="fillDirectionAnimateEnums" />
+				<xs:attribute ref="insideOnly" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="animateTouchSEType">
+		<xs:sequence>
+			<xs:element name="confirm" type="ConfirmType" minOccurs="0"/>  <!-- yyyang add-->
+		</xs:sequence>
+		<xs:attribute ref="pressAction" />
+		<xs:attribute ref="repeatAction" />
+		<xs:attribute ref="releaseAction" />
+		<xs:attribute ref="repeatRate" />
+                <xs:attribute name="TouchStyle" type="TouchActionEnums"/>
+	</xs:complexType>
+	<xs:complexType name="animateColorType">
+		<xs:complexContent>
+			<xs:extension base="basicAnimateType">
+				<xs:sequence>
+					<xs:element name="color" type="animateColorEntryType" minOccurs="2" maxOccurs="16" />
+				</xs:sequence>
+				<xs:attribute ref="blinkRate" />
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="animateHyperlinkType">
+		<xs:complexContent>
+			<xs:extension base="basicAnimateType">
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="animateColorEntryType">
+		<xs:attribute name="value" type="xs:double" />
+		<xs:attribute ref="foreBehavior" />
+		<xs:attribute ref="foreColor1" />
+		<xs:attribute ref="foreColor2" />
+		<xs:attribute ref="backBehavior" />
+		<xs:attribute ref="backColor1" />
+		<xs:attribute ref="backColor2" />
+        <xs:attribute ref="fillColorMode" />
+	<xs:attributeGroup ref="gradientProperties"/>
+        <!--dlv1 347741-->
+	<xs:attributeGroup ref="gradientFillProperties"/>
+	</xs:complexType>
+	<xs:complexType name="basicAnimateType">
+		<xs:attribute name="expression" type="animationExpressionType" />
+	</xs:complexType>
+	<xs:complexType name="expressionRangeAnimateType">
+		<xs:complexContent>
+			<xs:extension base="basicAnimateType">
+				<xs:sequence>
+					<xs:choice>
+						<xs:element name="defaultExpressionRange" type="defaultExpressionRangeType" minOccurs="0" />
+						<xs:element name="constantExpressionRange" type="constantExpressionRangeType" minOccurs="0" />
+						<xs:element name="readFromTagExpressionRange" type="readFromTagExpressionRangeType" minOccurs="0" />
+					</xs:choice>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="defaultExpressionRangeType" />
+	<xs:complexType name="constantExpressionRangeType">
+		<xs:attribute name="min" type="xs:double" />
+		<xs:attribute name="max" type="xs:double" />
+	</xs:complexType>
+	<xs:complexType name="readFromTagExpressionRangeType">
+		<xs:attribute name="minTag" type="minAnimationTagExpressionRange" />
+		<xs:attribute name="maxTag" type="maxAnimationTagExpressionRange" />
+	</xs:complexType>
+</xs:schema>

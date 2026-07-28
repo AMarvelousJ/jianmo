@@ -143,6 +143,8 @@ class PathTask(BaseModel):
     failure_message: str | None = None
     actual_point: Vec3 | None = None
     error: PositionError | None = None
+    owner_kind: Literal["standalone", "loading"] = "standalone"
+    owner_id: str | None = None
 
 
 class PathTaskSummary(BaseModel):
@@ -157,3 +159,5 @@ class PathTaskSummary(BaseModel):
     error: PositionError | None = None
     pause_reason: str | None = None
     failure_code: str | None = None
+    owner_kind: Literal["standalone", "loading"] = "standalone"
+    owner_id: str | None = None

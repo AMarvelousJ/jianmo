@@ -9,7 +9,19 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.dependencies import get_plc_sync_service
-from app.api.routers import axis, loader, path_plans, path_tasks, plc, scene, simulation, state
+from app.api.routers import (
+    axis,
+    loader,
+    loading_plans,
+    loading_tasks,
+    path_plans,
+    path_tasks,
+    plc,
+    scene,
+    simulation,
+    state,
+)
+from app.core.loading.errors import LoadingError
 
 
 @asynccontextmanager
@@ -34,7 +46,20 @@ app.include_router(scene.router)
 app.include_router(loader.router)
 app.include_router(path_plans.router)
 app.include_router(path_tasks.router)
+app.include_router(loading_plans.router)
+app.include_router(loading_tasks.router)
 app.include_router(plc.router)
+
+
+@app.exception_handler(LoadingError)
+async def loading_exception_handler(
+    _: Request,
+    error: LoadingError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=error.status_code,
+        content={"detail": error.detail()},
+    )
 
 
 @app.exception_handler(RequestValidationError)

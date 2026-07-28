@@ -53,64 +53,126 @@ class PathTaskManager:
 
     def create_task(self, request_id: str, plan_id: str) -> tuple[PathTask, bool]:
         with self._lock:
-            existing = self._request_map.get(request_id)
-            if existing is not None:
-                existing_plan_id, task_id = existing
-                if existing_plan_id != plan_id:
-                    raise PathPlanningError(
-                        "IDEMPOTENCY_CONFLICT",
-                        "相同 request_id 不能用于不同的 plan_id。",
-                        status_code=409,
-                        context={
-                            "request_id": request_id,
-                            "existing_plan_id": existing_plan_id,
-                            "requested_plan_id": plan_id,
-                        },
-                    )
-                return self._tasks[task_id].model_copy(deep=True), False
-            if self._active_task() is not None:
-                raise PathPlanningError(
-                    "TASK_CONFLICT",
-                    "已有自动路径任务正在运行或暂停。",
-                    status_code=409,
-                    context={"task_id": self._active_task_id},
-                )
-            plan = self.plan_store.get(plan_id)
-            self.planner.validate_for_execution(plan)
-            execution_plan = self.planner.refresh_for_execution(plan)
-            now = datetime.now(timezone.utc)
-            task = PathTask(
-                task_id=f"task-{uuid4().hex}",
-                request_id=request_id,
-                plan_id=plan_id,
-                scene_revision=execution_plan.scene_revision,
-                status="running",
-                current_stage=execution_plan.stages[0].stage,
-                stage_index=1,
-                created_at=now,
-                started_at=now,
-                target=execution_plan.target,
-                axis_solution=execution_plan.axis_solution,
-                stages=[
-                    PathStageExecution(
-                        stage=stage.stage,
-                        axis_targets=dict(stage.axis_targets),
-                        estimated_duration_s=stage.estimated_duration_s,
-                        timeout_s=stage.timeout_s,
-                    )
-                    for stage in execution_plan.stages
-                ],
-                estimated_duration_s=execution_plan.estimated_duration_s,
+            loading_manager = getattr(self.world, "loading_task_manager", None)
+            if loading_manager is not None:
+                loading_manager.ensure_standalone_path_allowed()
+            return self._create_task_locked(
+                request_id,
+                plan_id,
+                owner_kind="standalone",
+                owner_id=None,
             )
-            self._tasks[task.task_id] = task
-            self._request_map[request_id] = (plan_id, task.task_id)
-            self._active_task_id = task.task_id
-            self._latest_task_id = task.task_id
-            self._stage_issued = False
-            self._trim_history()
-            self.world.resume()
-            self._log("path_task_started", task)
-            return task.model_copy(deep=True), True
+
+    def create_owned_task(
+        self,
+        request_id: str,
+        plan_id: str,
+        *,
+        owner_kind: str,
+        owner_id: str,
+    ) -> tuple[PathTask, bool]:
+        with self._lock:
+            if owner_kind != "loading":
+                raise PathPlanningError(
+                    "INVALID_PATH_OWNER",
+                    "不支持的路径任务所有者。",
+                    status_code=409,
+                    context={"owner_kind": owner_kind},
+                )
+            loading_manager = getattr(self.world, "loading_task_manager", None)
+            if (
+                loading_manager is None
+                or not loading_manager.is_owner_active(owner_id)
+            ):
+                raise PathPlanningError(
+                    "INVALID_PATH_OWNER",
+                    "整船装载任务已失去路径控制权。",
+                    status_code=409,
+                    context={"owner_kind": owner_kind, "owner_id": owner_id},
+                )
+            return self._create_task_locked(
+                request_id,
+                plan_id,
+                owner_kind="loading",
+                owner_id=owner_id,
+            )
+
+    def _create_task_locked(
+        self,
+        request_id: str,
+        plan_id: str,
+        *,
+        owner_kind: str,
+        owner_id: str | None,
+    ) -> tuple[PathTask, bool]:
+        existing = self._request_map.get(request_id)
+        if existing is not None:
+            existing_plan_id, task_id = existing
+            if existing_plan_id != plan_id:
+                raise PathPlanningError(
+                    "IDEMPOTENCY_CONFLICT",
+                    "相同 request_id 不能用于不同的 plan_id。",
+                    status_code=409,
+                    context={
+                        "request_id": request_id,
+                        "existing_plan_id": existing_plan_id,
+                        "requested_plan_id": plan_id,
+                    },
+                )
+            task = self._tasks[task_id]
+            if task.owner_kind != owner_kind or task.owner_id != owner_id:
+                raise PathPlanningError(
+                    "IDEMPOTENCY_CONFLICT",
+                    "相同 request_id 不能用于不同的任务所有者。",
+                    status_code=409,
+                    context={"request_id": request_id},
+                )
+            return task.model_copy(deep=True), False
+        if self._active_task() is not None:
+            raise PathPlanningError(
+                "TASK_CONFLICT",
+                "已有自动路径任务正在运行或暂停。",
+                status_code=409,
+                context={"task_id": self._active_task_id},
+            )
+        plan = self.plan_store.get(plan_id)
+        self.planner.validate_for_execution(plan)
+        execution_plan = self.planner.refresh_for_execution(plan)
+        now = datetime.now(timezone.utc)
+        task = PathTask(
+            task_id=f"task-{uuid4().hex}",
+            request_id=request_id,
+            plan_id=plan_id,
+            scene_revision=execution_plan.scene_revision,
+            status="running",
+            current_stage=execution_plan.stages[0].stage,
+            stage_index=1,
+            created_at=now,
+            started_at=now,
+            target=execution_plan.target,
+            axis_solution=execution_plan.axis_solution,
+            stages=[
+                PathStageExecution(
+                    stage=stage.stage,
+                    axis_targets=dict(stage.axis_targets),
+                    estimated_duration_s=stage.estimated_duration_s,
+                    timeout_s=stage.timeout_s,
+                )
+                for stage in execution_plan.stages
+            ],
+            estimated_duration_s=execution_plan.estimated_duration_s,
+            owner_kind=owner_kind,
+            owner_id=owner_id,
+        )
+        self._tasks[task.task_id] = task
+        self._request_map[request_id] = (plan_id, task.task_id)
+        self._active_task_id = task.task_id
+        self._latest_task_id = task.task_id
+        self._stage_issued = False
+        self._trim_history()
+        self.world.resume()
+        self._log("path_task_started", task)
+        return task.model_copy(deep=True), True
 
     def get_current(self) -> PathTask | None:
         with self._lock:
@@ -162,11 +224,20 @@ class PathTaskManager:
                 error=task.error,
                 pause_reason=task.pause_reason,
                 failure_code=task.failure_code,
+                owner_kind=task.owner_kind,
+                owner_id=task.owner_id,
             )
 
-    def pause_task(self, task_id: str, reason: str = "operator_paused") -> PathTask:
+    def pause_task(
+        self,
+        task_id: str,
+        reason: str = "operator_paused",
+        *,
+        owner_id: str | None = None,
+    ) -> PathTask:
         with self._lock:
             task = self._require_active_task(task_id)
+            self._ensure_owner_locked(task, owner_id)
             if task.status == "paused":
                 return task.model_copy(deep=True)
             if task.status != "running":
@@ -174,9 +245,15 @@ class PathTaskManager:
             self._pause_locked(task, reason)
             return task.model_copy(deep=True)
 
-    def resume_task(self, task_id: str) -> PathTask:
+    def resume_task(
+        self,
+        task_id: str,
+        *,
+        owner_id: str | None = None,
+    ) -> PathTask:
         with self._lock:
             task = self._require_active_task(task_id)
+            self._ensure_owner_locked(task, owner_id)
             if task.status != "paused":
                 raise self._invalid_state(task, "resume")
             self.planner.validate_task(task)
@@ -187,7 +264,13 @@ class PathTaskManager:
             self._log("path_task_resumed", task)
             return task.model_copy(deep=True)
 
-    def cancel_task(self, task_id: str, reason: str = "operator_cancelled") -> PathTask:
+    def cancel_task(
+        self,
+        task_id: str,
+        reason: str = "operator_cancelled",
+        *,
+        owner_id: str | None = None,
+    ) -> PathTask:
         with self._lock:
             task = self._tasks.get(task_id)
             if task is None:
@@ -197,6 +280,7 @@ class PathTaskManager:
                     status_code=404,
                     context={"task_id": task_id},
                 )
+            self._ensure_owner_locked(task, owner_id)
             if task.status == "cancelled":
                 return task.model_copy(deep=True)
             if task.status not in self.ACTIVE_STATUSES:
@@ -242,7 +326,11 @@ class PathTaskManager:
         with self._lock:
             task = self._active_task()
             if task is not None:
-                self.cancel_task(task.task_id, reason="simulation_reset")
+                self.cancel_task(
+                    task.task_id,
+                    reason="simulation_reset",
+                    owner_id=task.owner_id,
+                )
 
     def ensure_manual_control_allowed(self) -> None:
         with self._lock:
@@ -332,6 +420,27 @@ class PathTaskManager:
         if task.task_id != self._active_task_id:
             raise self._invalid_state(task, "control")
         return task
+
+    @staticmethod
+    def _ensure_owner_locked(
+        task: PathTask,
+        owner_id: str | None,
+    ) -> None:
+        if task.owner_kind == "standalone":
+            if owner_id is None:
+                return
+        elif task.owner_id == owner_id and owner_id is not None:
+            return
+        raise PathPlanningError(
+            "AUTOMATION_LOCKED",
+            "该路径任务由整船装载编排器控制。",
+            status_code=409,
+            context={
+                "task_id": task.task_id,
+                "owner_kind": task.owner_kind,
+                "owner_id": task.owner_id,
+            },
+        )
 
     @staticmethod
     def _invalid_state(task: PathTask, action: str) -> PathPlanningError:

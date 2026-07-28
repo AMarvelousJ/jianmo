@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0",
+  "plan_id": "hy503-voy2525-20251017",
+  "name": "华元503 航次2525 配载计划",
+  "vessel_id": "Vessel-R",
+  "vessel_name": "华元503",
+  "voyage_no": "2525",
+  "plan_date": "2025-10-17",
+  "cargo": "煤",
+  "loading_port": "黄骅",
+  "discharge_port": "靖江",
+  "total_target_kg": 52100000,
+  "nominal_rate_tph": 8000.0,
+  "belt_speed_mps": 4.8,
+  "hold_mapping": {
+    "No.1": "R1",
+    "No.2": "R2",
+    "No.3": "R3",
+    "No.4": "R4",
+    "No.5": "R5"
+  },
+  "hold_capacity_m3": {
+    "No.1": 11363.9,
+    "No.2": 13671.6,
+    "No.3": 13684.3,
+    "No.4": 13684.3,
+    "No.5": 13001.2
+  },
+  "execution": {
+    "demo_motion_scale": 12.0,
+    "normal_motion_scale": 1.0,
+    "demo_loading_scale": 600.0,
+    "normal_loading_scale": 1.0,
+    "drainage_logical_s": 50400.0,
+    "drainage_demo_s": 14.0,
+    "event_interval_demo_s": 1.0
+  },
+  "rounds": [
+    {
+      "round_no": 1,
+      "target_kg": 27000000,
+      "after_round_wait": {
+        "type": "drainage",
+        "logical_duration_s": 50400.0,
+        "demo_duration_s": 14.0
+      },
+      "batches": [
+        {"batch_no": 1, "hold_no": "No.4", "hold_id": "R4", "target_kg": 6000000, "column": 7, "row": 4, "loading_zone": "center_aft"},
+        {"batch_no": 2, "hold_no": "No.2", "hold_id": "R2", "target_kg": 6000000, "column": 4, "row": 4, "loading_zone": "center_forward"},
+        {"batch_no": 3, "hold_no": "No.5", "hold_id": "R5", "target_kg": 6000000, "column": 5, "row": 4, "loading_zone": "center"},
+        {"batch_no": 4, "hold_no": "No.3", "hold_id": "R3", "target_kg": 4000000, "column": 4, "row": 4, "loading_zone": "center_forward"},
+        {"batch_no": 5, "hold_no": "No.1", "hold_id": "R1", "target_kg": 5000000, "column": 5, "row": 4, "loading_zone": "center"}
+      ]
+    },
+    {
+      "round_no": 2,
+      "target_kg": 23700000,
+      "batches": [
+        {"batch_no": 6, "hold_no": "No.4", "hold_id": "R4", "target_kg": 5200000, "column": 7, "row": 4, "loading_zone": "center_aft"},
+        {"batch_no": 7, "hold_no": "No.2", "hold_id": "R2", "target_kg": 5100000, "column": 4, "row": 4, "loading_zone": "center_forward"},
+        {"batch_no": 8, "hold_no": "No.5", "hold_id": "R5", "target_kg": 4500000, "column": 5, "row": 4, "loading_zone": "center"},
+        {"batch_no": 9, "hold_no": "No.1", "hold_id": "R1", "target_kg": 4600000, "column": 5, "row": 4, "loading_zone": "center"},
+        {"batch_no": 10, "hold_no": "No.3", "hold_id": "R3", "target_kg": 4300000, "column": 4, "row": 4, "loading_zone": "center_forward"}
+      ]
+    },
+    {
+      "round_no": 3,
+      "target_kg": 1400000,
+      "batches": [
+        {"batch_no": 11, "hold_no": "No.1", "hold_id": "R1", "target_kg": 700000, "column": 5, "row": 4, "loading_zone": "trim"},
+        {"batch_no": 12, "hold_no": "No.5", "hold_id": "R5", "target_kg": 700000, "column": 5, "row": 4, "loading_zone": "trim"}
+      ]
+    }
+  ]
+}

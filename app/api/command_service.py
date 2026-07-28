@@ -10,6 +10,8 @@ class MotionCommandService:
 
     def set_axis_target(self, axis_id: str, target: float, velocity: float | None = None) -> SimulationSnapshot:
         with self.world.lock:
+            if self.world.loading_task_manager is not None:
+                self.world.loading_task_manager.ensure_manual_control_allowed()
             if self.world.path_task_manager is not None:
                 self.world.path_task_manager.ensure_manual_control_allowed()
             self.world.loader.set_axis_target(axis_id, target, velocity)
@@ -17,6 +19,8 @@ class MotionCommandService:
 
     def start_axis(self, axis_id: str) -> SimulationSnapshot:
         with self.world.lock:
+            if self.world.loading_task_manager is not None:
+                self.world.loading_task_manager.ensure_manual_control_allowed()
             if self.world.path_task_manager is not None:
                 self.world.path_task_manager.ensure_manual_control_allowed()
             self.world.loader.start_axis(axis_id)
@@ -24,6 +28,8 @@ class MotionCommandService:
 
     def stop_axis(self, axis_id: str) -> SimulationSnapshot:
         with self.world.lock:
+            if self.world.loading_task_manager is not None:
+                self.world.loading_task_manager.on_manual_stop()
             if self.world.path_task_manager is not None:
                 self.world.path_task_manager.on_manual_stop()
             self.world.loader.stop_axis(axis_id)
@@ -31,6 +37,13 @@ class MotionCommandService:
 
     def set_belt(self, speed: float, running: bool) -> SimulationSnapshot:
         with self.world.lock:
+            if self.world.loading_task_manager is not None:
+                if running:
+                    self.world.loading_task_manager.ensure_belt_control_allowed(
+                        running
+                    )
+                else:
+                    self.world.loading_task_manager.on_manual_stop()
             if self.world.path_task_manager is not None:
                 self.world.path_task_manager.ensure_belt_control_allowed(running)
             self.world.loader.set_belt(speed, running)
@@ -38,7 +51,12 @@ class MotionCommandService:
 
     def pause_simulation(self) -> SimulationSnapshot:
         with self.world.lock:
-            if self.world.path_task_manager is not None:
+            if (
+                self.world.loading_task_manager is not None
+                and self.world.loading_task_manager.has_active_task()
+            ):
+                self.world.loading_task_manager.on_simulation_pause()
+            elif self.world.path_task_manager is not None:
                 self.world.path_task_manager.on_simulation_pause()
             else:
                 self.world.pause()
@@ -46,7 +64,12 @@ class MotionCommandService:
 
     def resume_simulation(self) -> SimulationSnapshot:
         with self.world.lock:
-            if self.world.path_task_manager is not None:
+            if (
+                self.world.loading_task_manager is not None
+                and self.world.loading_task_manager.has_active_task()
+            ):
+                self.world.loading_task_manager.on_simulation_resume()
+            elif self.world.path_task_manager is not None:
                 self.world.path_task_manager.on_simulation_resume()
             else:
                 self.world.resume()
