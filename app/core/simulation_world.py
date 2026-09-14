@@ -118,6 +118,7 @@ class SimulationWorld:
             kinematics = loader_state.kinematics
             return SimulationSnapshot(
                 sim_time=self.sim_time,
+                sim_paused=self.paused,
                 loader_id=self.loader.loader_id,
                 axis_states=loader_state.axis_states,
                 key_points=kinematics.key_points(),

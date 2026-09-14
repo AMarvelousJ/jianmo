@@ -25,9 +25,11 @@ class LoadingPlanValidator:
         self,
         scene_state: SceneState,
         path_planner: PathPlanner,
+        expected_hold_mapping: dict[str, str] | None = None,
     ) -> None:
         self.scene_state = scene_state
         self.path_planner = path_planner
+        self.expected_hold_mapping = expected_hold_mapping or self.EXPECTED_HOLD_MAPPING
 
     def validate(self, plan: LoadingPlan, *, check_paths: bool = True) -> LoadingPlanValidation:
         scene = self.scene_state.get_scene()
@@ -81,7 +83,7 @@ class LoadingPlanValidator:
                 },
             )
         self._expect(
-            plan.hold_mapping == self.EXPECTED_HOLD_MAPPING,
+            plan.hold_mapping == self.expected_hold_mapping,
             errors,
             "HOLD_MAPPING_INVALID",
             "P0 舱号映射必须为 No.1～No.5 对应 R1～R5。",

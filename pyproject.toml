@@ -29,6 +29,7 @@ science = [
     "scipy",
 ]
 dev = [
+    "httpx2",
     "ruff",
     "mypy",
     "pytest-cov",

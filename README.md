@@ -43,6 +43,9 @@ http://127.0.0.1:8000/
 ```text
 GET  /api/state
 POST /api/simulation/step|pause|resume|reset
+PUT  /api/simulation/clock/clients/{client_id}
+DELETE /api/simulation/clock/clients/{client_id}
+GET  /api/simulation/clock
 GET  /api/scene
 PUT  /api/scene
 
@@ -58,6 +61,10 @@ GET  /api/loading-tasks/{task_id}
 POST /api/loading-tasks/{task_id}/pause|resume|cancel|reset
 GET  /api/loading-tasks/{task_id}/events
 ```
+
+Unity 客户端进入 Play 模式后会注册共享仿真时钟，并每秒续约。存在活动 Unity
+客户端时，后端以 `0.1s` 步长自动推进；浏览器旧版 `/step` 请求只返回当前状态，
+避免两个显示端同时推进仿真。
 
 活动整船任务持有设备控制权。此时公共路径创建、手动轴命令和手动启动皮带会返回结构化 `409` 错误。
 
@@ -83,6 +90,12 @@ python examples/demo_multi_axis_motion.py
 python examples/demo_3d_motion.py
 python examples/demo_3d_motion.py --off-screen --screenshot work/shiploader_3d_demo.png
 ```
+
+## Unity 实时展示
+
+Unity 工程通过 HTTP/JSON 连接本服务。启动脚本、共享仿真时钟和联通检查见
+[Unity 实时通信说明](docs/Unity实时通信说明.md)。用于业务联调时打开 Unity 的
+`SL15_Demo` 场景。
 
 ## PLC 反馈同步
 

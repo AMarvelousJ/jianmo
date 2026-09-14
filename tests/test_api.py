@@ -1,3 +1,5 @@
+import time
+
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -27,9 +29,40 @@ def test_state_endpoint_returns_snapshot():
     assert response.status_code == 200
     body = response.json()
     assert body["loader_id"] == "SL15"
+    assert body["sim_paused"] is False
     assert "axis_states" in body
     assert "key_points" in body
     assert "fixed_boom_tip_position" in body["key_points"]
+
+
+def test_unity_clock_client_advances_simulation_and_prevents_double_step():
+    client = TestClient(app)
+    client.post("/api/simulation/reset")
+    client_id = "unity-api-test"
+    try:
+        registered = client.put(
+            f"/api/simulation/clock/clients/{client_id}",
+            json={"client_name": "unity"},
+        )
+        assert registered.status_code == 200
+        assert registered.json()["active_clients"] >= 1
+
+        before = client.get("/api/state").json()["sim_time"]
+        deadline = time.monotonic() + 1.0
+        after = before
+        while after <= before and time.monotonic() < deadline:
+            time.sleep(0.03)
+            after = client.get("/api/state").json()["sim_time"]
+        assert after > before
+
+        legacy_step = client.post("/api/simulation/step", json={"dt": 10.0})
+        assert legacy_step.status_code == 200
+        assert legacy_step.json()["sim_time"] < after + 1.0
+    finally:
+        released = client.delete(f"/api/simulation/clock/clients/{client_id}")
+        assert released.status_code == 200
+        assert released.json()["active_clients"] == 0
+        client.post("/api/simulation/reset")
 
 
 def test_luff_and_extension_targets_move_after_step():

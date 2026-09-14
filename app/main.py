@@ -8,7 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api.dependencies import get_plc_sync_service
+from app.api.dependencies import get_plc_sync_service, get_simulation_clock
 from app.api.routers import (
     axis,
     loader,
@@ -27,11 +27,17 @@ from app.core.loading.errors import LoadingError
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     plc_sync_service = get_plc_sync_service()
+    simulation_clock = get_simulation_clock()
+    simulation_clock.start()
     plc_sync_service.start()
     try:
         yield
     finally:
         plc_sync_service.stop()
+        simulation_clock.stop()
+        from app.api.fleet import machines
+        for machine in machines:
+            machine.clock.stop()
 
 
 app = FastAPI(
@@ -97,4 +103,6 @@ def health() -> dict[str, str]:
 
 
 WEB_DIR = Path(__file__).resolve().parent / "web"
+from app.api.fleet import mount_fleet
+mount_fleet(app)
 app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")

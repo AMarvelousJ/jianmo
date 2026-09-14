@@ -114,7 +114,7 @@ class LoadingTaskExecutor:
         path_task, _ = manager.path_task_manager.create_owned_task(
             request_id=(
                 f"loading:{task.task_id}:batch:{batch.batch_no}:"
-                f"scene:{task.scene_revision}"
+                f"scene:{task.scene_revision}:plan:{plan.plan_id}"
             ),
             plan_id=plan.plan_id,
             owner_kind="loading",

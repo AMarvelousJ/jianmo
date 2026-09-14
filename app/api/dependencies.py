@@ -4,26 +4,28 @@ import logging
 
 from app.api.command_service import MotionCommandService
 from app.api.state_service import SimulationStateService
-from app.config.loading import load_loading_plan
 from app.config.loader import create_ship_loader, load_loader_profile
+from app.config.loading import load_loading_plan
 from app.config.plc import load_plc_settings
 from app.config.scene import load_scene_config
-from app.core.plc.sync_service import PlcSyncService
-from app.core.scene_state import SceneState
-from app.core.simulation_world import SimulationWorld
+from app.core.loading.errors import LoadingError
+from app.core.loading.plan_validator import LoadingPlanValidator
+from app.core.loading.task_manager import LoadingTaskManager
 from app.core.path_planning.grid_transformer import GridTransformer
 from app.core.path_planning.path_planner import PathPlanner
 from app.core.path_planning.plan_store import PathPlanStore
 from app.core.path_planning.target_solver import TargetSolver
 from app.core.path_planning.task_manager import PathTaskManager
-from app.core.loading.plan_validator import LoadingPlanValidator
-from app.core.loading.errors import LoadingError
-from app.core.loading.task_manager import LoadingTaskManager
+from app.core.plc.sync_service import PlcSyncService
+from app.core.scene_state import SceneState
+from app.core.simulation_clock import SimulationClock
+from app.core.simulation_world import SimulationWorld
 
 logger = logging.getLogger(__name__)
 
 _loader_profile = load_loader_profile()
 _world = SimulationWorld(create_ship_loader(_loader_profile))
+_simulation_clock = SimulationClock(_world)
 _scene_state = SceneState(load_scene_config())
 _grid_transformer = GridTransformer()
 _target_solver = TargetSolver(_world.loader.solver)
@@ -68,6 +70,10 @@ _world.attach_plc_sync_service(_plc_sync_service)
 
 def get_world() -> SimulationWorld:
     return _world
+
+
+def get_simulation_clock() -> SimulationClock:
+    return _simulation_clock
 
 
 def get_loader_profile():

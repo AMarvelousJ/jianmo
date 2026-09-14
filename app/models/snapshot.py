@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field
 
 from app.models.axis import AxisState
 from app.models.loading import LoadingTaskSummary
-from app.models.pose import Pose, Vec3
 from app.models.path_planning import PathTaskSummary
+from app.models.pose import Pose, Vec3
 
 
 class KinematicsResult(BaseModel):
@@ -64,6 +64,7 @@ class ShipLoaderState(BaseModel):
 
 class SimulationSnapshot(BaseModel):
     sim_time: float
+    sim_paused: bool
     loader_id: str
     axis_states: dict[str, AxisState]
     key_points: dict[str, Vec3]
