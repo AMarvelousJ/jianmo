@@ -1,0 +1,1187 @@
+{
+  "version": "yard-motion-demo-v1",
+  "source": "current scenes; engineering demo parameters, not measured equipment data",
+  "demo": true,
+  "scene_units_per_meter": 1.0,
+  "step": 0.02,
+  "lease_timeout": 3.0,
+  "jog_timeout": 0.35,
+  "machines": [
+    {
+      "machine_id": "RC01",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -345.0,
+          "minimum": -405.0,
+          "maximum": -320.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC01",
+        "name": "YardReclaimer_Right_01",
+        "role": "Reclaiming",
+        "x": -345.0,
+        "y": 0.0,
+        "z": -192.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -405.0,
+        "max_x": -320.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC02",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -290.0,
+          "minimum": -310.0,
+          "maximum": -195.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC02",
+        "name": "YardReclaimer_Right_02",
+        "role": "Reclaiming",
+        "x": -290.0,
+        "y": 0.0,
+        "z": -192.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -310.0,
+        "max_x": -195.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC03",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -345.0,
+          "minimum": -405.0,
+          "maximum": -320.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC03",
+        "name": "YardReclaimer_Right_03",
+        "role": "Reclaiming",
+        "x": -345.0,
+        "y": 0.0,
+        "z": -264.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -405.0,
+        "max_x": -320.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC04",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -290.0,
+          "minimum": -310.0,
+          "maximum": -195.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC04",
+        "name": "YardReclaimer_Right_04",
+        "role": "Reclaiming",
+        "x": -290.0,
+        "y": 0.0,
+        "z": -264.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -310.0,
+        "max_x": -195.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC05",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -345.0,
+          "minimum": -405.0,
+          "maximum": -320.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC05",
+        "name": "YardReclaimer_Right_05",
+        "role": "Reclaiming",
+        "x": -345.0,
+        "y": 0.0,
+        "z": -336.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -405.0,
+        "max_x": -320.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC06",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -290.0,
+          "minimum": -310.0,
+          "maximum": -195.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC06",
+        "name": "YardReclaimer_Right_06",
+        "role": "Reclaiming",
+        "x": -290.0,
+        "y": 0.0,
+        "z": -336.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -310.0,
+        "max_x": -195.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC07",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -290.0,
+          "minimum": -310.0,
+          "maximum": -195.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC07",
+        "name": "YardReclaimer_Right_07",
+        "role": "Reclaiming",
+        "x": -290.0,
+        "y": 0.0,
+        "z": -408.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -310.0,
+        "max_x": -195.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC08",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -345.0,
+          "minimum": -405.0,
+          "maximum": -320.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC08",
+        "name": "YardReclaimer_Right_08",
+        "role": "Reclaiming",
+        "x": -345.0,
+        "y": 0.0,
+        "z": -480.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -405.0,
+        "max_x": -320.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC09",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -290.0,
+          "minimum": -310.0,
+          "maximum": -195.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC09",
+        "name": "YardReclaimer_Right_09",
+        "role": "Reclaiming",
+        "x": -290.0,
+        "y": 0.0,
+        "z": -480.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -310.0,
+        "max_x": -195.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC10",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -345.0,
+          "minimum": -405.0,
+          "maximum": -320.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC10",
+        "name": "YardReclaimer_Right_10",
+        "role": "Reclaiming",
+        "x": -345.0,
+        "y": 0.0,
+        "z": -516.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -405.0,
+        "max_x": -320.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC11",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -290.0,
+          "minimum": -310.0,
+          "maximum": -195.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC11",
+        "name": "YardReclaimer_Right_11",
+        "role": "Reclaiming",
+        "x": -290.0,
+        "y": 0.0,
+        "z": -516.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -310.0,
+        "max_x": -195.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC12",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -345.0,
+          "minimum": -405.0,
+          "maximum": -320.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC12",
+        "name": "YardReclaimer_Right_12",
+        "role": "Reclaiming",
+        "x": -345.0,
+        "y": 0.0,
+        "z": -588.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -405.0,
+        "max_x": -320.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC13",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -290.0,
+          "minimum": -310.0,
+          "maximum": -195.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC13",
+        "name": "YardReclaimer_Right_13",
+        "role": "Reclaiming",
+        "x": -290.0,
+        "y": 0.0,
+        "z": -588.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -310.0,
+        "max_x": -195.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "RC14",
+      "role": "Reclaiming",
+      "axes": {
+        "travel": {
+          "initial": -290.0,
+          "minimum": -310.0,
+          "maximum": -195.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "RC14",
+        "name": "YardReclaimer_Right_14",
+        "role": "Reclaiming",
+        "x": -290.0,
+        "y": 0.0,
+        "z": -660.0,
+        "yaw": 180.0,
+        "scale": 0.455,
+        "min_x": -310.0,
+        "max_x": -195.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "ST01",
+      "role": "Stacking",
+      "axes": {
+        "travel": {
+          "initial": -510.0,
+          "minimum": -625.0,
+          "maximum": -425.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "ST01",
+        "name": "YardStacker_Left_01",
+        "role": "Stacking",
+        "x": -510.0,
+        "y": 0.0,
+        "z": -228.0,
+        "yaw": 0.0,
+        "scale": 0.455,
+        "min_x": -625.0,
+        "max_x": -425.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "ST02",
+      "role": "Stacking",
+      "axes": {
+        "travel": {
+          "initial": -510.0,
+          "minimum": -625.0,
+          "maximum": -425.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "ST02",
+        "name": "YardStacker_Left_02",
+        "role": "Stacking",
+        "x": -510.0,
+        "y": 0.0,
+        "z": -300.0,
+        "yaw": 0.0,
+        "scale": 0.455,
+        "min_x": -625.0,
+        "max_x": -425.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "ST03",
+      "role": "Stacking",
+      "axes": {
+        "travel": {
+          "initial": -510.0,
+          "minimum": -625.0,
+          "maximum": -425.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "ST03",
+        "name": "YardStacker_Left_03",
+        "role": "Stacking",
+        "x": -510.0,
+        "y": 0.0,
+        "z": -372.0,
+        "yaw": 0.0,
+        "scale": 0.455,
+        "min_x": -625.0,
+        "max_x": -425.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "ST04",
+      "role": "Stacking",
+      "axes": {
+        "travel": {
+          "initial": -510.0,
+          "minimum": -625.0,
+          "maximum": -425.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "ST04",
+        "name": "YardStacker_Left_04",
+        "role": "Stacking",
+        "x": -510.0,
+        "y": 0.0,
+        "z": -408.0,
+        "yaw": 0.0,
+        "scale": 0.455,
+        "min_x": -625.0,
+        "max_x": -425.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "ST05",
+      "role": "Stacking",
+      "axes": {
+        "travel": {
+          "initial": -510.0,
+          "minimum": -625.0,
+          "maximum": -425.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "ST05",
+        "name": "YardStacker_Left_05",
+        "role": "Stacking",
+        "x": -510.0,
+        "y": 0.0,
+        "z": -444.0,
+        "yaw": 0.0,
+        "scale": 0.455,
+        "min_x": -625.0,
+        "max_x": -425.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "ST06",
+      "role": "Stacking",
+      "axes": {
+        "travel": {
+          "initial": -510.0,
+          "minimum": -625.0,
+          "maximum": -425.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "ST06",
+        "name": "YardStacker_Left_06",
+        "role": "Stacking",
+        "x": -510.0,
+        "y": 0.0,
+        "z": -552.0,
+        "yaw": 0.0,
+        "scale": 0.455,
+        "min_x": -625.0,
+        "max_x": -425.0,
+        "parent_scale": 1.0
+      }
+    },
+    {
+      "machine_id": "ST07",
+      "role": "Stacking",
+      "axes": {
+        "travel": {
+          "initial": -510.0,
+          "minimum": -625.0,
+          "maximum": -425.0,
+          "max_speed": 2.0,
+          "acceleration": 0.5,
+          "deceleration": 0.5,
+          "tolerance": 0.001
+        },
+        "slew": {
+          "initial": 0.0,
+          "minimum": -90.0,
+          "maximum": 90.0,
+          "max_speed": 5.0,
+          "acceleration": 2.0,
+          "deceleration": 2.0,
+          "tolerance": 0.01
+        },
+        "luff": {
+          "initial": 0.0,
+          "minimum": -8.0,
+          "maximum": 15.0,
+          "max_speed": 2.0,
+          "acceleration": 1.0,
+          "deceleration": 1.0,
+          "tolerance": 0.01
+        }
+      },
+      "wheel": {
+        "max_speed": 8.0,
+        "acceleration": 2.0,
+        "deceleration": 2.0
+      },
+      "belt": {
+        "max_speed": 4.0,
+        "acceleration": 1.0,
+        "deceleration": 1.0
+      },
+      "scene": {
+        "machine_id": "ST07",
+        "name": "YardStacker_Left_07",
+        "role": "Stacking",
+        "x": -510.0,
+        "y": 0.0,
+        "z": -624.0,
+        "yaw": 0.0,
+        "scale": 0.455,
+        "min_x": -625.0,
+        "max_x": -425.0,
+        "parent_scale": 1.0
+      }
+    }
+  ]
+}
