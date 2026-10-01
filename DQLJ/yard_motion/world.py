@@ -10,6 +10,7 @@ from pathlib import Path
 
 from .errors import MotionError, finite
 from .geometry import POSE_AXES, GeometryCalibration
+from .jobs import MaterialJobs
 from .material import MaterialDomain
 from .motion import Axis, Drive
 
@@ -48,6 +49,7 @@ class World:
         self.material = MaterialDomain()
         self.geometry = GeometryCalibration()
         self.geometry.validate_against_machines(self.config["machines"])
+        self.jobs = MaterialJobs(self.material, self.geometry)
         self.instance = str(uuid.uuid4())
         self.sim_time = 0.0
         self.seq = 0
@@ -140,7 +142,7 @@ class World:
                 return copy.deepcopy(result)
             if not command_id or not isinstance(command_seq, int) or isinstance(command_seq, bool) or command_seq <= m.last_seq:
                 raise MotionError("STALE_COMMAND", "命令序号已过期")
-            if m.estop and kind not in ("clear_estop", "reset", "estop", "stop", "stop_jog"):
+            if m.estop and kind not in ("clear_estop", "reset", "estop", "stop", "stop_jog", "pause_job", "terminate_job"):
                 raise MotionError("ESTOP_LATCHED", "急停已锁定，请先解除")
             self._apply(m, kind, payload)
             m.last_seq = command_seq
@@ -157,6 +159,8 @@ class World:
             "set_targets": {"targets"}, "jog": {"axis", "direction", "speed"}, "stop_jog": {"axis"},
             "set_wheel": {"speed"}, "set_belt": {"speed"}, "stop": set(), "estop": set(),
             "clear_estop": set(), "reset": set(),
+            "start_job": {"zone", "mode", "requested_flow_t_per_h"},
+            "pause_job": set(), "resume_job": set(), "terminate_job": set(),
         }
         if kind not in allowed or not isinstance(p, dict) or set(p) - allowed[kind]:
             raise MotionError("INVALID_COMMAND", "命令类型或字段无效", 422)
@@ -210,10 +214,20 @@ class World:
                 a.reset()
             m.wheel.reset()
             m.belt.reset()
+        elif kind == "start_job":
+            self.jobs.start_job(m, p.get("zone"), p.get("mode"), p.get("requested_flow_t_per_h"), self.sim_time)
+        elif kind == "pause_job":
+            self.jobs.pause_job(m)
+        elif kind == "resume_job":
+            self.jobs.resume_job(m)
+        elif kind == "terminate_job":
+            self.jobs.terminate_job(m)
         m.reason = kind
 
     def init_material(self, mode, confirm=False):
         with self.lock:
+            if self.jobs.any_active():
+                raise MotionError("JOB_ACTIVE", "物料作业进行中，不能重新初始化场景", 409)
             current = self.material.state()
             if current["scene"] != "uninitialized" and current["inventory"]["total_m3"] > 0 and not confirm:
                 raise MotionError("CONFIRM_REQUIRED", "物料场景非空，重新初始化需要二次确认", 409)
@@ -247,6 +261,7 @@ class World:
                 m.wheel.update(dt)
                 m.belt.update(dt)
                 self._expire(m)
+            self.jobs.step(self.machines, dt)
             self.sim_time += dt
             self.seq += 1
 
@@ -265,4 +280,5 @@ class World:
             return dict(server_instance_id=self.instance, config_version=self.config["version"],
                         sim_time=self.sim_time, snapshot_seq=self.seq,
                         material=self.material.state(),
+                        jobs=self.jobs.snapshot(),
                         machines={n: self._snapshot(m) for n, m in self.machines.items()})

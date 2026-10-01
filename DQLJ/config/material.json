@@ -1,6 +1,6 @@
 {
-  "version": "coal-material-demo-v1",
-  "source": "12# row geometry from SL15StockyardLayout.cs (row center z=-210, pile edges z+/-15, row bed x=-657.5..-162.5); coal and preset parameters are engineering demo values carried over from the coal-process prototype, not measured field data",
+  "version": "coal-material-demo-v2",
+  "source": "12# row geometry from SL15StockyardLayout.cs (row center z=-210, pile edges z+/-15, row bed x=-657.5..-162.5); coal and preset parameters are engineering demo values carried over from the coal-process prototype, not measured field data; job zones and the capability curve are batch-1 demo candidates",
   "demo": true,
   "scene_units_per_meter": 1.0,
   "grid": {
@@ -24,6 +24,13 @@
       "z": [-233.0, -187.0]
     }
   },
+  "job_zones": {
+    "north-12": {
+      "x": [-655.0, -165.0],
+      "z": [-225.0, -195.0],
+      "label": "北端 12# 行（首批作业区，与堆存分类区重合）"
+    }
+  },
   "ground": {
     "elevation": 0.0
   },
@@ -36,7 +43,8 @@
     "repose_angle_deg": 35.0,
     "max_height": 8.0,
     "flow_capability_t_per_h": 3000.0,
-    "deposit_sigma_m": 0.8
+    "deposit_sigma_m": 0.8,
+    "capability_curve": "linear"
   },
   "preset": {
     "name": "default_pile",

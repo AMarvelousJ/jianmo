@@ -225,7 +225,7 @@ def test_api_material_scene_state_and_config():
     state = client.get("/api/state").json()
     assert state["material"]["inventory"]["total_m3"] > 0
     config = client.get("/api/material/config").json()
-    assert config["version"] == "coal-material-demo-v1"
+    assert config["version"] == "coal-material-demo-v2"
     assert config["demo"] is True
     assert config["source"]
     assert config["calibration"]["version"]

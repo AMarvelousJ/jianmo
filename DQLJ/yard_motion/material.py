@@ -19,13 +19,16 @@ _ZONE_YARD, _ZONE_SPILL, _ZONE_OUTSIDE = 2, 1, 0
 Rect = namedtuple("Rect", "x0 x1 z0 z1")
 
 
-def _rect(config, key):
-    rect = config[key]
+def _rect_values(rect, key):
     x0, x1 = rect["x"]
     z0, z1 = rect["z"]
     if not (x0 < x1 and z0 < z1):
         raise ValueError("Invalid %s rectangle" % key)
     return Rect(x0, x1, z0, z1)
+
+
+def _rect(config, key):
+    return _rect_values(config[key], key)
 
 
 class MaterialDomain:
@@ -81,6 +84,15 @@ class MaterialDomain:
         for key in ("density_t_per_m3", "repose_angle_deg", "max_height", "flow_capability_t_per_h", "deposit_sigma_m"):
             if not isinstance(coal.get(key), (int, float)) or isinstance(coal.get(key), bool) or not math.isfinite(coal[key]) or coal[key] <= 0:
                 raise ValueError("Invalid coal parameter: %s" % key)
+        if coal.get("capability_curve") != "linear":
+            raise ValueError("Unsupported capability curve")
+        job_zones = c.get("job_zones")
+        if not isinstance(job_zones, dict) or not job_zones:
+            raise ValueError("Material config must define job zones")
+        for name, zone in job_zones.items():
+            rect = _rect_values(zone, "job zone %s" % name)
+            if not (domain.x0 <= rect.x0 and rect.x1 <= domain.x1 and domain.z0 <= rect.z0 and rect.z1 <= domain.z1):
+                raise ValueError("Job zone %s must lie inside the domain" % name)
         if c["ground"]["elevation"] < 0 or not math.isfinite(c["ground"]["elevation"]):
             raise ValueError("Invalid ground elevation")
 
