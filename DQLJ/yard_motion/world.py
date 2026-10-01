@@ -9,6 +9,7 @@ from collections import OrderedDict
 from pathlib import Path
 
 from .errors import MotionError, finite
+from .geometry import POSE_AXES, GeometryCalibration
 from .material import MaterialDomain
 from .motion import Axis, Drive
 
@@ -45,6 +46,8 @@ class World:
         self.lock = threading.RLock()
         self.machines = {c["machine_id"]: Machine(c) for c in self.config["machines"]}
         self.material = MaterialDomain()
+        self.geometry = GeometryCalibration()
+        self.geometry.validate_against_machines(self.config["machines"])
         self.instance = str(uuid.uuid4())
         self.sim_time = 0.0
         self.seq = 0
@@ -217,6 +220,17 @@ class World:
             self.material.init_scene(mode)
             self.seq += 1
             return self.material.state()
+
+    def machine_geometry(self, machine_id):
+        with self.lock:
+            m = self.machine(machine_id)
+            scene = m.config["scene"]
+            pose = {axis: m.axes[axis].position for axis in POSE_AXES}
+            return dict(machine_id=machine_id,
+                        geometry_version=self.geometry.config["version"],
+                        pose=dict(pose),
+                        discharge_point=self.geometry.discharge_point(scene, **pose),
+                        wheel_envelope=self.geometry.wheel_envelope(scene, **pose))
 
     def advance(self, dt):
         with self.lock:

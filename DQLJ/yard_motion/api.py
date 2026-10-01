@@ -106,6 +106,14 @@ def create_app(world=None, run_clock=True):
     def material_config():
         return world.material.config
 
+    @app.get("/api/geometry/config")
+    def geometry_config():
+        return world.geometry.config
+
+    @app.get("/api/machines/{machine_id}/geometry")
+    def machine_geometry(machine_id: str):
+        return world.machine_geometry(machine_id)
+
     return app
 
 

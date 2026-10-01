@@ -1,0 +1,36 @@
+{
+  "version": "yard-geometry-probe-v1",
+  "source": "12-pose Unity preview-scene probe (GeometryProbe.cs) over SL15_Demo.unity and SL15_VideoPreview.unity at travel=-410, slew=90, luff in {-8, 0, 15}; wheel envelope measured from actual mesh vertices of the rig, not enlarged for reachability",
+  "demo": true,
+  "scene_units_per_meter": 1.0,
+  "units": "world lengths in m and angles in deg; boom-local points and pivot_height are model units scaled by kinematics.scale",
+  "kinematics": {
+    "scale": 0.455,
+    "pivot_height": 8.5,
+    "wheel_center_boom_local": [34.0, 0.5],
+    "outlet_boom_local": [33.0, 0.3]
+  },
+  "wheel": {
+    "swept_radius": 2.09893942,
+    "axial_min": -0.432252228,
+    "axial_max": 0.6597593
+  },
+  "travel_candidates": {
+    "version": "travel-candidates-2026-10",
+    "source": "common-band proposal from prototype analysis (ST01 upper limit -395, RC01 lower limit -425, 30-unit shared X band); requires verification against actual rail ends and neighbour machines before any change to official machine config",
+    "applied": false,
+    "machines": {
+      "ST01": {"maximum": -395.0},
+      "RC01": {"minimum": -425.0}
+    }
+  },
+  "probe_evidence": {
+    "poses_fixture": "tests/fixtures/unity_geometry_poses.json",
+    "contact_fixture": "tests/fixtures/contact_pile.json",
+    "unity_export": "D:/3D/outputs/coal-process-prototype/unity-geometry.json",
+    "contact_export": "D:/3D/outputs/coal-process-prototype/contact-probe.json",
+    "full_revolution_contact_m3": 0.7606208793458995,
+    "pose_check_tolerance_m": 0.02,
+    "notes": "discharge marker is the boom-front point (boom-local 33, 0.3), distinct from the wheel centre (boom-local 34, 0.5); Unity markers are comparison aids only, the backend calibration is the truth source for derived geometry"
+  }
+}

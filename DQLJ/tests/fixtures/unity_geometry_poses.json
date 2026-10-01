@@ -1,0 +1,242 @@
+[
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_Demo.unity",
+    "machine_id": "ST01",
+    "luff": -8.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      1.93977785,
+      -212.6489
+    ],
+    "candidate_outlet": [
+      -410.0,
+      1.91298735,
+      -213.112122
+    ],
+    "wheel_swept_radius": 2.09893942,
+    "wheel_axial_min": -0.4322531,
+    "wheel_axial_max": 0.659757555
+  },
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_Demo.unity",
+    "machine_id": "ST01",
+    "luff": 0.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      4.09500027,
+      -212.53
+    ],
+    "candidate_outlet": [
+      -410.0,
+      4.004,
+      -212.985
+    ],
+    "wheel_swept_radius": 2.09894085,
+    "wheel_axial_min": -0.432253063,
+    "wheel_axial_max": 0.6597575
+  },
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_Demo.unity",
+    "machine_id": "ST01",
+    "luff": 15.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      8.091179,
+      -213.116013
+    ],
+    "candidate_outlet": [
+      -410.0,
+      7.885517,
+      -213.531952
+    ],
+    "wheel_swept_radius": 2.09894037,
+    "wheel_axial_min": -0.432253063,
+    "wheel_axial_max": 0.6597583
+  },
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_Demo.unity",
+    "machine_id": "RC01",
+    "luff": -8.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      1.93977785,
+      -207.3511
+    ],
+    "candidate_outlet": [
+      -410.0,
+      1.91298735,
+      -206.887878
+    ],
+    "wheel_swept_radius": 2.09893942,
+    "wheel_axial_min": -0.432252228,
+    "wheel_axial_max": 0.6597593
+  },
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_Demo.unity",
+    "machine_id": "RC01",
+    "luff": 0.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      4.09500027,
+      -207.47
+    ],
+    "candidate_outlet": [
+      -410.0,
+      4.004,
+      -207.015
+    ],
+    "wheel_swept_radius": 2.09894085,
+    "wheel_axial_min": -0.4322522,
+    "wheel_axial_max": 0.6597592
+  },
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_Demo.unity",
+    "machine_id": "RC01",
+    "luff": 15.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      8.091179,
+      -206.883987
+    ],
+    "candidate_outlet": [
+      -410.0,
+      7.885517,
+      -206.468048
+    ],
+    "wheel_swept_radius": 2.09894037,
+    "wheel_axial_min": -0.432252169,
+    "wheel_axial_max": 0.659760058
+  },
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_VideoPreview.unity",
+    "machine_id": "ST01",
+    "luff": -8.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      1.93977785,
+      -212.6489
+    ],
+    "candidate_outlet": [
+      -410.0,
+      1.91298735,
+      -213.112122
+    ],
+    "wheel_swept_radius": 2.09893942,
+    "wheel_axial_min": -0.4322531,
+    "wheel_axial_max": 0.659757555
+  },
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_VideoPreview.unity",
+    "machine_id": "ST01",
+    "luff": 0.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      4.09500027,
+      -212.53
+    ],
+    "candidate_outlet": [
+      -410.0,
+      4.004,
+      -212.985
+    ],
+    "wheel_swept_radius": 2.09894085,
+    "wheel_axial_min": -0.432253063,
+    "wheel_axial_max": 0.6597575
+  },
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_VideoPreview.unity",
+    "machine_id": "ST01",
+    "luff": 15.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      8.091179,
+      -213.116013
+    ],
+    "candidate_outlet": [
+      -410.0,
+      7.885517,
+      -213.531952
+    ],
+    "wheel_swept_radius": 2.09894037,
+    "wheel_axial_min": -0.432253063,
+    "wheel_axial_max": 0.6597583
+  },
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_VideoPreview.unity",
+    "machine_id": "RC01",
+    "luff": -8.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      1.93977785,
+      -207.3511
+    ],
+    "candidate_outlet": [
+      -410.0,
+      1.91298735,
+      -206.887878
+    ],
+    "wheel_swept_radius": 2.09893942,
+    "wheel_axial_min": -0.432252228,
+    "wheel_axial_max": 0.6597593
+  },
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_VideoPreview.unity",
+    "machine_id": "RC01",
+    "luff": 0.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      4.09500027,
+      -207.47
+    ],
+    "candidate_outlet": [
+      -410.0,
+      4.004,
+      -207.015
+    ],
+    "wheel_swept_radius": 2.09894085,
+    "wheel_axial_min": -0.4322522,
+    "wheel_axial_max": 0.6597592
+  },
+  {
+    "scene": "Assets/Shiploader/Scenes/SL15_VideoPreview.unity",
+    "machine_id": "RC01",
+    "luff": 15.0,
+    "travel": -410,
+    "slew": 90,
+    "wheel_center": [
+      -410.0,
+      8.091179,
+      -206.883987
+    ],
+    "candidate_outlet": [
+      -410.0,
+      7.885517,
+      -206.468048
+    ],
+    "wheel_swept_radius": 2.09894037,
+    "wheel_axial_min": -0.432252169,
+    "wheel_axial_max": 0.659760058
+  }
+]
