@@ -27,6 +27,12 @@ class CommandRequest(ControlRequest):
     payload: dict = Field(default_factory=dict)
 
 
+class MaterialSceneRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    mode: str
+    confirm: bool = False
+
+
 def create_app(world=None, run_clock=True):
     world = world or World()
 
@@ -91,6 +97,14 @@ def create_app(world=None, run_clock=True):
     @app.post("/api/machines/{machine_id}/commands")
     def command(machine_id: str, body: CommandRequest):
         return world.command(machine_id, **body.model_dump())
+
+    @app.post("/api/material/scene")
+    def material_scene(body: MaterialSceneRequest):
+        return world.init_material(body.mode, body.confirm)
+
+    @app.get("/api/material/config")
+    def material_config():
+        return world.material.config
 
     return app
 

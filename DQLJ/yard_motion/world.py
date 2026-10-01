@@ -8,19 +8,9 @@ import uuid
 from collections import OrderedDict
 from pathlib import Path
 
+from .errors import MotionError, finite
+from .material import MaterialDomain
 from .motion import Axis, Drive
-
-
-class MotionError(Exception):
-    def __init__(self, code, message, status=409):
-        self.code, self.message, self.status = code, message, status
-        super().__init__(message)
-
-
-def finite(value):
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
-        raise MotionError("INVALID_COMMAND", "参数必须为有限数值", 422)
-    return float(value)
 
 
 class Machine:
@@ -54,6 +44,7 @@ class World:
         self.clock = clock
         self.lock = threading.RLock()
         self.machines = {c["machine_id"]: Machine(c) for c in self.config["machines"]}
+        self.material = MaterialDomain()
         self.instance = str(uuid.uuid4())
         self.sim_time = 0.0
         self.seq = 0
@@ -218,6 +209,15 @@ class World:
             m.belt.reset()
         m.reason = kind
 
+    def init_material(self, mode, confirm=False):
+        with self.lock:
+            current = self.material.state()
+            if current["scene"] != "uninitialized" and current["inventory"]["total_m3"] > 0 and not confirm:
+                raise MotionError("CONFIRM_REQUIRED", "物料场景非空，重新初始化需要二次确认", 409)
+            self.material.init_scene(mode)
+            self.seq += 1
+            return self.material.state()
+
     def advance(self, dt):
         with self.lock:
             dt = finite(dt)
@@ -250,4 +250,5 @@ class World:
                 self._expire(m)
             return dict(server_instance_id=self.instance, config_version=self.config["version"],
                         sim_time=self.sim_time, snapshot_seq=self.seq,
+                        material=self.material.state(),
                         machines={n: self._snapshot(m) for n, m in self.machines.items()})

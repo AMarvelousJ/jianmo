@@ -1,0 +1,50 @@
+{
+  "version": "coal-material-demo-v1",
+  "source": "12# row geometry from SL15StockyardLayout.cs (row center z=-210, pile edges z+/-15, row bed x=-657.5..-162.5); coal and preset parameters are engineering demo values carried over from the coal-process prototype, not measured field data",
+  "demo": true,
+  "scene_units_per_meter": 1.0,
+  "grid": {
+    "cell_size": 0.5,
+    "origin_x": -665.0,
+    "origin_z": -235.0,
+    "cells_x": 1020,
+    "cells_z": 100
+  },
+  "domain": {
+    "x": [-665.0, -155.0],
+    "z": [-235.0, -185.0]
+  },
+  "zones": {
+    "yard": {
+      "x": [-655.0, -165.0],
+      "z": [-225.0, -195.0]
+    },
+    "spill": {
+      "x": [-663.0, -157.0],
+      "z": [-233.0, -187.0]
+    }
+  },
+  "ground": {
+    "elevation": 0.0
+  },
+  "calibration": {
+    "version": "scene-layout-2026-09",
+    "source": "12# row geometry from SL15StockyardLayout.cs; not surveyed metres"
+  },
+  "coal": {
+    "density_t_per_m3": 0.85,
+    "repose_angle_deg": 35.0,
+    "max_height": 8.0,
+    "flow_capability_t_per_h": 3000.0,
+    "deposit_sigma_m": 0.8
+  },
+  "preset": {
+    "name": "default_pile",
+    "center_x": -365.0,
+    "center_z": -210.0,
+    "length_x": 70.0,
+    "base_width_z": 24.0,
+    "top_width_z": 8.0,
+    "height": 6.0
+  }
+}
