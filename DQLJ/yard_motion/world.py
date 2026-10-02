@@ -10,7 +10,7 @@ from pathlib import Path
 
 from .errors import MotionError, finite
 from .geometry import POSE_AXES, GeometryCalibration
-from .jobs import MaterialJobs
+from .jobs import MaterialJobs, MATERIAL_MACHINE_IDS
 from .material import MaterialDomain
 from .motion import Axis, Drive
 
@@ -81,6 +81,7 @@ class World:
         if m.lease and m.lease["state"] == "owned" and self.clock() >= m.lease["expires"]:
             self._release(m, "CONNECTION_TIMEOUT")
         if m.lease and m.lease["state"] == "releasing" and not m.moving():
+            self.jobs.release_zone(m)
             m.lease = None
 
     def _release(self, m, reason):
@@ -130,6 +131,10 @@ class World:
 
     def command(self, machine_id, client_id, token, generation, command_id, command_seq, kind, payload):
         with self.lock:
+            # Other zone owners can time out between clock ticks. Expire them
+            # before deciding whether this command may claim their zone.
+            for machine in self.machines.values():
+                self._expire(machine)
             m = self.machine(machine_id)
             self._owned(m, client_id, token, generation)
             try:
@@ -143,13 +148,15 @@ class World:
                 return copy.deepcopy(result)
             if not command_id or not isinstance(command_seq, int) or isinstance(command_seq, bool) or command_seq <= m.last_seq:
                 raise MotionError("STALE_COMMAND", "命令序号已过期")
-            if m.estop and kind not in ("clear_estop", "reset", "estop", "stop", "stop_jog", "pause_job", "terminate_job", "finish_job"):
+            if m.estop and kind not in ("clear_estop", "reset", "estop", "stop", "stop_jog", "pause_job", "terminate_job", "finish_job", "reset_material"):
                 raise MotionError("ESTOP_LATCHED", "急停已锁定，请先解除")
             self._apply(m, kind, payload)
             m.last_seq = command_seq
             m.last_command_id = command_id
             self.seq += 1
             result = dict(command_id=command_id, accepted=True, snapshot_seq=self.seq, machine=self._snapshot(m))
+            if kind == "reset_material":
+                result["material"] = self.material.state()
             m.results[command_id] = (fingerprint, copy.deepcopy(result))
             if len(m.results) > 512:
                 m.results.popitem(last=False)
@@ -162,6 +169,7 @@ class World:
             "clear_estop": set(), "reset": set(),
             "start_job": {"zone", "mode", "requested_flow_t_per_h", "target_t"},
             "pause_job": set(), "resume_job": set(), "terminate_job": set(), "finish_job": set(),
+            "reset_material": {"mode", "confirm", "controls"},
         }
         if kind not in allowed or not isinstance(p, dict) or set(p) - allowed[kind]:
             raise MotionError("INVALID_COMMAND", "命令类型或字段无效", 422)
@@ -230,9 +238,49 @@ class World:
             self.jobs.terminate_job(m)
         elif kind == "finish_job":
             self.jobs.finish_job(m)
+        elif kind == "reset_material":
+            self._reset_material(m, p)
         m.reason = kind
 
+    def _reset_material(self, commander, payload):
+        """Reset the pilot domain only with all related machine controls held."""
+        commander_id = commander.config["machine_id"]
+        if commander_id not in MATERIAL_MACHINE_IDS:
+            raise MotionError("CONTROL_REQUIRED", "场景重置必须由相关设备控制者发起", 403)
+        client_id = commander.lease["client_id"]
+        controls = payload.get("controls", [])
+        if not isinstance(controls, list):
+            raise MotionError("INVALID_COMMAND", "相关设备控制凭据无效", 422)
+        required = set(MATERIAL_MACHINE_IDS) - {commander_id}
+        seen = set()
+        for control in controls:
+            if not isinstance(control, dict) or set(control) != {"machine_id", "token", "generation"}:
+                raise MotionError("INVALID_COMMAND", "相关设备控制凭据字段无效", 422)
+            machine_id = control["machine_id"]
+            if not isinstance(machine_id, str) or machine_id not in required or machine_id in seen:
+                raise MotionError("INVALID_COMMAND", "相关设备控制凭据重复或设备无效", 422)
+            if not isinstance(control["generation"], int) or isinstance(control["generation"], bool):
+                raise MotionError("INVALID_COMMAND", "控制代次无效", 422)
+            self._owned(self.machine(machine_id), client_id, control["token"], control["generation"])
+            seen.add(machine_id)
+        if seen != required:
+            raise MotionError("CONTROL_REQUIRED", "重置需要同时持有 ST01 和 RC01 的控制权", 403)
+        if self.jobs.any_active():
+            raise MotionError("JOB_ACTIVE", "相关物料作业必须结束后才能重置", 409)
+        if any(self.machine(machine_id).moving() for machine_id in MATERIAL_MACHINE_IDS):
+            raise MotionError("MACHINE_MOVING", "相关设备必须停稳后才能重置", 409)
+        confirm = payload.get("confirm", False)
+        if not isinstance(confirm, bool):
+            raise MotionError("INVALID_COMMAND", "确认字段必须为布尔值", 422)
+        if self.material.scene != "uninitialized" and not confirm:
+            raise MotionError("CONFIRM_REQUIRED", "重新初始化物料需要二次确认", 409)
+        self.init_material(payload.get("mode"), confirm)
+
     def init_material(self, mode, confirm=False):
+        """Trusted in-process setup for startup/tests; never an HTTP write seam.
+
+        Client writes must use the authenticated reset_material command.
+        """
         with self.lock:
             if self.jobs.any_active():
                 raise MotionError("JOB_ACTIVE", "物料作业进行中，不能重新初始化场景", 409)
@@ -311,4 +359,5 @@ class World:
                         sim_time=self.sim_time, snapshot_seq=self.seq,
                         material=self.material.state(),
                         jobs=self.jobs.snapshot(),
+                          zone_occupancy=self.jobs.zone_snapshot(),
                         machines={n: self._snapshot(m) for n, m in self.machines.items()})

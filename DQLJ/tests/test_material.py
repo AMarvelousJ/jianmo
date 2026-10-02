@@ -217,9 +217,12 @@ def test_world_reinit_nonempty_scene_requires_confirmation():
 
 
 def test_api_material_scene_state_and_config():
-    world = World()
+    from test_material_control import scene_controls
+
+    world = World(clock=lambda: 0.0)
     client = TestClient(create_app(world, run_clock=False))
-    response = client.post("/api/material/scene", json={"mode": "preset"})
+    credentials = scene_controls(world)
+    response = client.post("/api/material/scene", json=dict(credentials, command_id="init", command_seq=1, mode="preset"))
     assert response.status_code == 200
     assert response.json()["scene"] == "preset"
     state = client.get("/api/state").json()
@@ -240,12 +243,12 @@ def test_api_material_scene_state_and_config():
     assert config["coal"]["flow_capability_t_per_h"] == 3000.0
     assert "token" not in json.dumps(config)
     assert "lease" not in json.dumps(config)
-    refused = client.post("/api/material/scene", json={"mode": "empty"})
+    refused = client.post("/api/material/scene", json=dict(credentials, command_id="unconfirmed", command_seq=2, mode="empty"))
     assert refused.status_code == 409
     assert refused.json()["detail"]["code"] == "CONFIRM_REQUIRED"
-    confirmed = client.post("/api/material/scene", json={"mode": "empty", "confirm": True})
+    confirmed = client.post("/api/material/scene", json=dict(credentials, command_id="reset", command_seq=2, mode="empty", confirm=True))
     assert confirmed.status_code == 200
     assert client.get("/api/state").json()["material"]["inventory"]["total_m3"] == 0
-    unknown = client.post("/api/material/scene", json={"mode": "nonsense"})
+    unknown = client.post("/api/material/scene", json=dict(credentials, command_id="unknown", command_seq=3, mode="nonsense", confirm=True))
     assert unknown.status_code == 422
     assert unknown.json()["detail"]["code"] == "INVALID_SCENE"

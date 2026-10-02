@@ -94,6 +94,8 @@ class MaterialDomain:
         job_zones = c.get("job_zones")
         if not isinstance(job_zones, dict) or not job_zones:
             raise ValueError("Material config must define job zones")
+        if len(job_zones) != 1:
+            raise ValueError("Manual pilot supports exactly one job zone per material grid")
         for name, zone in job_zones.items():
             rect = _rect_values(zone, "job zone %s" % name)
             if not (domain.x0 <= rect.x0 and rect.x1 <= domain.x1 and domain.z0 <= rect.z0 and rect.z1 <= domain.z1):

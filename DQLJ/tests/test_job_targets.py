@@ -113,12 +113,19 @@ def test_target_counts_only_actual_material_and_explicit_stack_finish_keeps_stoc
 
 
 def test_history_remains_bounded_while_oldest_job_is_still_active():
-    world, _ = stacking_world()
+    from test_stacking import ready_world
+
+    world = ready_world()
+    st = Operator(world, "ST01", "history-test")
+    st.send("start_job", START_PAYLOAD)
     active_id = current_job(world)["job_id"]
+    # Release a stopped machine's control/zone, retaining its paused progress.
+    world.release("ST01", *st.creds)
+    assert world.state()["zone_occupancy"]["north-12"] is None
     op = Operator(world, "RC01", "history-test")
     for _ in range(520):
         op.send("start_job", START_PAYLOAD)
         op.send("terminate_job")
     jobs = world.state()["jobs"]
     assert len(jobs) <= 512
-    assert jobs[active_id]["status"] == "running"
+    assert jobs[active_id]["status"] == "paused"

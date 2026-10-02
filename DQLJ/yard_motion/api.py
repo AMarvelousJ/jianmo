@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field, StrictInt
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt
 
 from .world import MotionError, World
 
@@ -27,10 +27,20 @@ class CommandRequest(ControlRequest):
     payload: dict = Field(default_factory=dict)
 
 
-class MaterialSceneRequest(BaseModel):
+class OtherMachineControl(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    machine_id: str
+    token: str = Field(min_length=1, max_length=128)
+    generation: StrictInt
+
+
+class MaterialSceneRequest(ControlRequest):
+    machine_id: str
+    command_id: str = Field(min_length=1, max_length=128)
+    command_seq: StrictInt
     mode: str
-    confirm: bool = False
+    confirm: StrictBool = False
+    controls: list[OtherMachineControl] = Field(default_factory=list)
 
 
 def create_app(world=None, run_clock=True):
@@ -100,7 +110,11 @@ def create_app(world=None, run_clock=True):
 
     @app.post("/api/material/scene")
     def material_scene(body: MaterialSceneRequest):
-        return world.init_material(body.mode, body.confirm)
+        result = world.command(body.machine_id, body.client_id, body.token, body.generation,
+                               body.command_id, body.command_seq, "reset_material",
+                               dict(mode=body.mode, confirm=body.confirm,
+                                    controls=[control.model_dump() for control in body.controls]))
+        return result["material"]
 
     @app.get("/api/material/config")
     def material_config():

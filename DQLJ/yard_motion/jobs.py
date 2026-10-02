@@ -16,6 +16,7 @@ from .cutting import swept_contacts
 
 JOB_HISTORY_LIMIT = 512
 TARGET_TOLERANCE_T = 1e-9
+MATERIAL_MACHINE_IDS = ("ST01", "RC01")
 
 
 def belt_capability_t_per_h(machine, coal):
@@ -37,6 +38,29 @@ class MaterialJobs:
         self.geometry = geometry
         self.records = OrderedDict()
         self.active = {}  # machine_id -> job_id while running or paused
+        self.zone_owners = {}  # zone -> job_id; mutated under the World lock
+
+    def zone_snapshot(self):
+        return {zone: None if zone not in self.zone_owners else
+                dict(job_id=self.zone_owners[zone],
+                     machine_id=self.records[self.zone_owners[zone]]["machine_id"])
+                for zone in self.material.config["job_zones"]}
+
+    def _claim_zone(self, job):
+        owner_id = self.zone_owners.get(job["zone"])
+        if owner_id is not None and owner_id != job["job_id"]:
+            owner = self.records[owner_id]["machine_id"]
+            raise MotionError("ZONE_BUSY", f"作业区 {job['zone']} 已由 {owner} 占用", 409)
+        self.zone_owners[job["zone"]] = job["job_id"]
+
+    def _free_zone(self, job):
+        if self.zone_owners.get(job["zone"]) == job["job_id"]:
+            self.zone_owners.pop(job["zone"])
+
+    def release_zone(self, machine):
+        job_id = self.active.get(machine.config["machine_id"])
+        if job_id is not None:
+            self._free_zone(self.records[job_id])
 
     def snapshot(self):
         return {job_id: dict(copy.deepcopy(job), remaining_t=None if job["target_t"] is None else
@@ -53,7 +77,7 @@ class MaterialJobs:
         return self.records[job_id]
 
     def start_job(self, machine, zone, mode, requested_flow_t_per_h, sim_time, target_t=None):
-        if machine.config["machine_id"] not in ("ST01", "RC01"):
+        if machine.config["machine_id"] not in MATERIAL_MACHINE_IDS:
             raise MotionError("JOB_UNSUPPORTED", "该设备的物料作业暂未实现", 422)
         material = self.material
         if material.scene == "uninitialized":
@@ -79,6 +103,7 @@ class MaterialJobs:
                    requested_flow_t_per_h=flow, actual_flow_t_per_h=0.0,
                    status="running", reason=None, plan_version="manual",
                    started_sim_time=sim_time)
+        self._claim_zone(job)
         self.records[job_id] = job
         self.active[machine_id] = job_id
         while len(self.records) > JOB_HISTORY_LIMIT:
@@ -102,13 +127,17 @@ class MaterialJobs:
         if job_id is None: return
         job=self.records[job_id]
         job.update(status="terminated" if terminate else "paused",actual_flow_t_per_h=0.0,reason=reason)
-        if terminate: self.active.pop(machine.config["machine_id"],None)
+        if terminate:
+            self._free_zone(job)
+            self.active.pop(machine.config["machine_id"],None)
 
     def resume_job(self, machine):
         job = self._job_of(machine)
         if job["status"] != "paused":
             raise MotionError("JOB_STATE", "作业不在暂停状态", 409)
+        self._claim_zone(job)
         job["status"] = "running"
+        job["reason"] = None
 
     def terminate_job(self, machine):
         job = self._job_of(machine)
@@ -117,6 +146,7 @@ class MaterialJobs:
         job["status"] = "terminated"
         job["actual_flow_t_per_h"] = 0.0
         job["reason"] = None
+        self._free_zone(job)
         self.active.pop(machine.config["machine_id"], None)
 
     def finish_job(self, machine):
@@ -143,6 +173,7 @@ class MaterialJobs:
                           uncontacted_m3=max(0.0, inventory["total_m3"] - contactable))
         job.update(status="incomplete", reason="OPERATOR_FINISHED", actual_flow_t_per_h=0.0,
                    finish_report=report)
+        self._free_zone(job)
         self.active.pop(machine.config["machine_id"], None)
 
     def step(self, machines, dt, previous=None):
@@ -218,4 +249,5 @@ class MaterialJobs:
     def _complete_if_target_reached(self, job):
         if job["target_t"] is not None and job["target_t"] - job["completed_t"] <= TARGET_TOLERANCE_T:
             job.update(status="completed", actual_flow_t_per_h=0.0, reason=None)
+            self._free_zone(job)
             self.active.pop(job["machine_id"], None)
