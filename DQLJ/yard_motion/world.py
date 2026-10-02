@@ -40,13 +40,13 @@ class Machine:
 
 
 class World:
-    def __init__(self, config=None, clock=time.monotonic):
+    def __init__(self, config=None, clock=time.monotonic, material_config=None):
         self.config = config or json.loads((Path(__file__).resolve().parents[1] / "config/machines.json").read_text(encoding="utf-8"))
         self._validate_config()
         self.clock = clock
         self.lock = threading.RLock()
         self.machines = {c["machine_id"]: Machine(c) for c in self.config["machines"]}
-        self.material = MaterialDomain()
+        self.material = MaterialDomain(material_config)
         self.geometry = GeometryCalibration()
         self.geometry.validate_against_machines(self.config["machines"])
         self.jobs = MaterialJobs(self.material, self.geometry)
@@ -250,6 +250,25 @@ class World:
                         pose=dict(pose),
                         discharge_point=self.geometry.discharge_point(scene, **pose),
                         wheel_envelope=self.geometry.wheel_envelope(scene, **pose))
+
+    def material_grid(self):
+        """Read shape, classification and inventory at one locked material version.
+
+        Flat arrays use index = z_index * cells_x + x_index. Coordinates are
+        cell centres: origin + (index + 0.5) * cell_size, in backend metres.
+        Full grids are fetched on demand, separate from motion polling.
+        """
+        with self.lock:
+            material = self.material
+            return dict(server_instance_id=self.instance, snapshot_seq=self.seq,
+                        sim_time=self.sim_time, material_config_version=material.config["version"],
+                        material=material.state(),
+                        grid=dict(material.config["grid"],
+                                  array_order="z-major", sample_location="cell_center",
+                                  coal_thickness_m=list(material.heights),
+                                  ground_elevation_m=list(material.ground),
+                                  zone_codes=list(material.zone_code),
+                                  zone_labels={"0": "outside", "1": "spill", "2": "yard"}))
 
     def advance(self, dt):
         with self.lock:

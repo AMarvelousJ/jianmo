@@ -106,6 +106,10 @@ def create_app(world=None, run_clock=True):
     def material_config():
         return world.material.config
 
+    @app.get("/api/material/grid")
+    def material_grid():
+        return world.material_grid()
+
     @app.get("/api/geometry/config")
     def geometry_config():
         return world.geometry.config
