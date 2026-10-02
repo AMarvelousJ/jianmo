@@ -143,7 +143,7 @@ class World:
                 return copy.deepcopy(result)
             if not command_id or not isinstance(command_seq, int) or isinstance(command_seq, bool) or command_seq <= m.last_seq:
                 raise MotionError("STALE_COMMAND", "命令序号已过期")
-            if m.estop and kind not in ("clear_estop", "reset", "estop", "stop", "stop_jog", "pause_job", "terminate_job"):
+            if m.estop and kind not in ("clear_estop", "reset", "estop", "stop", "stop_jog", "pause_job", "terminate_job", "finish_job"):
                 raise MotionError("ESTOP_LATCHED", "急停已锁定，请先解除")
             self._apply(m, kind, payload)
             m.last_seq = command_seq
@@ -160,8 +160,8 @@ class World:
             "set_targets": {"targets"}, "jog": {"axis", "direction", "speed"}, "stop_jog": {"axis"},
             "set_wheel": {"speed"}, "set_belt": {"speed"}, "stop": set(), "estop": set(),
             "clear_estop": set(), "reset": set(),
-            "start_job": {"zone", "mode", "requested_flow_t_per_h"},
-            "pause_job": set(), "resume_job": set(), "terminate_job": set(),
+            "start_job": {"zone", "mode", "requested_flow_t_per_h", "target_t"},
+            "pause_job": set(), "resume_job": set(), "terminate_job": set(), "finish_job": set(),
         }
         if kind not in allowed or not isinstance(p, dict) or set(p) - allowed[kind]:
             raise MotionError("INVALID_COMMAND", "命令类型或字段无效", 422)
@@ -220,13 +220,16 @@ class World:
             m.wheel.reset()
             m.belt.reset()
         elif kind == "start_job":
-            self.jobs.start_job(m, p.get("zone"), p.get("mode"), p.get("requested_flow_t_per_h"), self.sim_time)
+            self.jobs.start_job(m, p.get("zone"), p.get("mode"), p.get("requested_flow_t_per_h"), self.sim_time,
+                                target_t=p.get("target_t"))
         elif kind == "pause_job":
             self.jobs.pause_job(m)
         elif kind == "resume_job":
             self.jobs.resume_job(m)
         elif kind == "terminate_job":
             self.jobs.terminate_job(m)
+        elif kind == "finish_job":
+            self.jobs.finish_job(m)
         m.reason = kind
 
     def init_material(self, mode, confirm=False):

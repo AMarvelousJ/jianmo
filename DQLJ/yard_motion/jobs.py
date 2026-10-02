@@ -7,6 +7,7 @@ and what the falling-core kernel can geometrically accept; refused volume is
 never counted as input. Wheel or belt motion without a job transfers nothing.
 """
 import uuid
+import copy
 from collections import OrderedDict
 
 from .errors import MotionError, finite
@@ -14,6 +15,7 @@ from .geometry import POSE_AXES
 from .cutting import swept_contacts
 
 JOB_HISTORY_LIMIT = 512
+TARGET_TOLERANCE_T = 1e-9
 
 
 def belt_capability_t_per_h(machine, coal):
@@ -37,7 +39,9 @@ class MaterialJobs:
         self.active = {}  # machine_id -> job_id while running or paused
 
     def snapshot(self):
-        return {job_id: dict(job) for job_id, job in self.records.items()}
+        return {job_id: dict(copy.deepcopy(job), remaining_t=None if job["target_t"] is None else
+                            max(0.0, job["target_t"] - job["completed_t"]))
+                for job_id, job in self.records.items()}
 
     def any_active(self):
         return bool(self.active)
@@ -48,7 +52,7 @@ class MaterialJobs:
             raise MotionError("JOB_NONE", "该设备没有进行中的物料作业", 409)
         return self.records[job_id]
 
-    def start_job(self, machine, zone, mode, requested_flow_t_per_h, sim_time):
+    def start_job(self, machine, zone, mode, requested_flow_t_per_h, sim_time, target_t=None):
         if machine.config["machine_id"] not in ("ST01", "RC01"):
             raise MotionError("JOB_UNSUPPORTED", "该设备的物料作业暂未实现", 422)
         material = self.material
@@ -65,19 +69,24 @@ class MaterialJobs:
         flow = finite(requested_flow_t_per_h)
         if flow <= 0:
             raise MotionError("INVALID_COMMAND", "请求流量必须为正数", 422)
+        if target_t is not None:
+            target_t = finite(target_t)
+            if target_t <= 0:
+                raise MotionError("INVALID_COMMAND", "目标吨位必须为正数", 422)
         job_id = "job-" + uuid.uuid4().hex
         job = dict(job_id=job_id, machine_id=machine_id, zone=zone, mode="manual",
-                   role="stacking" if machine.config["role"] == "Stacking" else "reclaiming", target_t=None, completed_t=0.0,
+                   role="stacking" if machine.config["role"] == "Stacking" else "reclaiming", target_t=target_t, completed_t=0.0,
                    requested_flow_t_per_h=flow, actual_flow_t_per_h=0.0,
                    status="running", reason=None, plan_version="manual",
                    started_sim_time=sim_time)
         self.records[job_id] = job
         self.active[machine_id] = job_id
         while len(self.records) > JOB_HISTORY_LIMIT:
-            oldest = next(iter(self.records))
-            if oldest in self.active:
+            active_ids = set(self.active.values())
+            oldest_finished = next((key for key in self.records if key not in active_ids), None)
+            if oldest_finished is None:
                 break
-            self.records.popitem(last=False)
+            del self.records[oldest_finished]
         return job
 
     def pause_job(self, machine):
@@ -110,6 +119,32 @@ class MaterialJobs:
         job["reason"] = None
         self.active.pop(machine.config["machine_id"], None)
 
+    def finish_job(self, machine):
+        """Explicit manual finish; report contacts without changing any coal.
+
+        A whole wheel revolution checks only this pose. Uncontacted stock can
+        still be reachable after moving the machine, so global reachability is
+        unknown until a workspace search is implemented.
+        """
+        job = self._job_of(machine)
+        if job["target_t"] is None:
+            raise MotionError("JOB_TARGET_REQUIRED", "无目标作业请使用终止命令", 409)
+        inventory = self.material.state()["inventory"]
+        report = dict(scope="inventory_only", material_version=self.material.version,
+                      residual_m3=inventory["total_m3"], residual_t=inventory["total_t"],
+                      contactable_m3=None, uncontacted_m3=None,
+                      whole_workspace_unreachable_m3=None)
+        if job["role"] == "reclaiming":
+            pose = {axis: machine.axes[axis].position for axis in POSE_AXES}
+            contacts = swept_contacts(self.material, self.geometry, machine.config["scene"],
+                                      pose, pose, machine.wheel.distance, machine.wheel.distance + 360)
+            contactable = min(inventory["total_m3"], sum(contacts.values()))
+            report.update(scope="current_pose_full_revolution", contactable_m3=contactable,
+                          uncontacted_m3=max(0.0, inventory["total_m3"] - contactable))
+        job.update(status="incomplete", reason="OPERATOR_FINISHED", actual_flow_t_per_h=0.0,
+                   finish_report=report)
+        self.active.pop(machine.config["machine_id"], None)
+
     def step(self, machines, dt, previous=None):
         """Advance every running job by dt: derive the outlet from the authoritative
         pose, clamp the flow to request/capability/geometric acceptance, and deposit."""
@@ -135,12 +170,13 @@ class MaterialJobs:
                 contacts=swept_contacts(self.material,self.geometry,scene,prev["pose"],pose,
                                         prev["phase"],machine.wheel.distance)
                 density=coal["density_t_per_m3"]
-                actual=self.material.remove_contacts(contacts,requested/3600*dt/density)
+                actual=self.material.remove_contacts(contacts,self._requested_volume(job, requested, dt, density))
                 job["completed_t"]+=actual*density
                 job["actual_flow_t_per_h"]=actual*density/dt*3600
                 job["reason"]="NO_CONTACT" if actual<=0 else (
                     "CONTACT_LIMITED" if job["actual_flow_t_per_h"]<requested-1e-8 else (
                     "CAPABILITY_LIMITED" if requested<job["requested_flow_t_per_h"] else None))
+                self._complete_if_target_reached(job)
                 continue
             outlet = self.geometry.discharge_point(scene, **pose)
             x, z = outlet["x"], outlet["z"]
@@ -159,7 +195,7 @@ class MaterialJobs:
                 job["reason"] = "BELT_NOT_RUNNING"
                 continue
             density = coal["density_t_per_m3"]
-            volume = attempted / 3600.0 * dt / density
+            volume = self._requested_volume(job, attempted, dt, density)
             result = self.material.deposit(x, z, volume,ceiling_y=outlet["y"])
             accepted = result["accepted_m3"]
             job["completed_t"] += accepted * density
@@ -170,3 +206,16 @@ class MaterialJobs:
                 job["reason"] = "CAPABILITY_LIMITED"
             else:
                 job["reason"] = None
+            self._complete_if_target_reached(job)
+
+    @staticmethod
+    def _requested_volume(job, flow, dt, density):
+        tonnes = flow / 3600.0 * dt
+        if job["target_t"] is not None:
+            tonnes = min(tonnes, max(0.0, job["target_t"] - job["completed_t"]))
+        return tonnes / density
+
+    def _complete_if_target_reached(self, job):
+        if job["target_t"] is not None and job["target_t"] - job["completed_t"] <= TARGET_TOLERANCE_T:
+            job.update(status="completed", actual_flow_t_per_h=0.0, reason=None)
+            self.active.pop(job["machine_id"], None)
