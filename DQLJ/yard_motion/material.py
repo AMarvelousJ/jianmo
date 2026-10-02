@@ -320,3 +320,54 @@ class MaterialDomain:
                     inventory=dict(in_zone_m3=in_zone, spilled_m3=spilled, total_m3=in_zone + spilled,
                                    in_zone_t=in_zone * density, spilled_t=spilled * density,
                                    total_t=(in_zone + spilled) * density))
+
+    def archive(self):
+        return dict(scene=self.scene, version=self.version, heights=list(self.heights),
+                    ground=list(self.ground), ledger=dict(self.ledger),
+                    pending_slope_pairs=list(self._relax_queue))
+
+    def validate_archive(self, data):
+        size = self.nx * self.nz
+        if data["scene"] not in ("empty", "preset", "uninitialized"):
+            raise ValueError("SNAPSHOT_SCENE")
+        if type(data["version"]) is not int or data["version"] < 0:
+            raise ValueError("SNAPSHOT_VERSION")
+        for key in ("heights", "ground"):
+            if not isinstance(data[key], list) or len(data[key]) != size:
+                raise ValueError("SNAPSHOT_GRID_SIZE")
+            if any(type(value) not in (float, int) or not math.isfinite(value) or value < 0 for value in data[key]):
+                raise ValueError("SNAPSHOT_GRID_VALUES")
+        if any(h > self.coal["max_height"] or (not code and h != 0)
+               for h, code in zip(data["heights"], self.zone_code)):
+            raise ValueError("SNAPSHOT_GRID_BOUNDS")
+        if any(value != self.config["ground"]["elevation"] for value in data["ground"]):
+            raise ValueError("SNAPSHOT_GROUND_CONFIGURATION")
+        ledger = data["ledger"]
+        if not isinstance(ledger, dict) or set(ledger) != {"initial_m3", "received_m3", "output_m3"}:
+            raise ValueError("SNAPSHOT_LEDGER")
+        if any(type(v) not in (float, int) or not math.isfinite(v) or v < 0 for v in ledger.values()):
+            raise ValueError("SNAPSHOT_LEDGER_VALUES")
+        identity = ledger["initial_m3"] + ledger["received_m3"] - ledger["output_m3"]
+        if abs(identity - sum(data["heights"]) * self.cell_area) > max(1e-8, sum(ledger.values()) * 1e-9):
+            raise ValueError("SNAPSHOT_CONSERVATION")
+        pairs = data["pending_slope_pairs"]
+        if not isinstance(pairs, list):
+            raise ValueError("SNAPSHOT_SLOPE_QUEUE")
+        for pair in pairs:
+            if not isinstance(pair, (tuple, list)) or len(pair) != 2 or any(type(i) is not int or not 0 <= i < size for i in pair):
+                raise ValueError("SNAPSHOT_SLOPE_PAIR")
+            a, b = pair
+            if a == b or not self.zone_code[a] or not self.zone_code[b] or max(abs(a % self.nx - b % self.nx), abs(a // self.nx - b // self.nx)) != 1:
+                raise ValueError("SNAPSHOT_SLOPE_NEIGHBOURS")
+        if len({tuple(pair) for pair in pairs}) != len(pairs):
+            raise ValueError("SNAPSHOT_SLOPE_DUPLICATES")
+
+    def restore_archive(self, data):
+        self.heights, self.ground = list(data["heights"]), list(data["ground"])
+        self.scene, self.version = data["scene"], data["version"]
+        self.ledger = dict(data["ledger"])
+        self.in_zone_m3 = sum(h * self.cell_area for h, code in zip(self.heights, self.zone_code) if code == _ZONE_YARD)
+        self.spilled_m3 = sum(h * self.cell_area for h, code in zip(self.heights, self.zone_code) if code == _ZONE_SPILL)
+        self._relax_queue = deque(tuple(pair) for pair in data["pending_slope_pairs"])
+        self._relax_queued = set(self._relax_queue)
+        self.relaxation.update(converged=not self._relax_queue, pending=len(self._relax_queue), iterations=0, elapsed_s=0.0)

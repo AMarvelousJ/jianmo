@@ -1,6 +1,8 @@
 import asyncio
 import contextlib
 import time
+import os
+from pathlib import Path
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -44,7 +46,8 @@ class MaterialSceneRequest(ControlRequest):
 
 
 def create_app(world=None, run_clock=True):
-    world = world or World()
+    world = world or World(snapshot_path=os.environ.get("DQLJ_SNAPSHOT_PATH") or
+                           Path(__file__).resolve().parents[1] / "data/material-snapshot.json")
 
     async def clock_loop():
         last = time.monotonic()
@@ -72,6 +75,7 @@ def create_app(world=None, run_clock=True):
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await task
+            world.save_snapshot()
 
     app = FastAPI(title="Yard Machine Motion Simulation", lifespan=lifespan)
     app.state.world = world

@@ -8,6 +8,7 @@ never counted as input. Wheel or belt motion without a job transfers nothing.
 """
 import uuid
 import copy
+import math
 from collections import OrderedDict
 
 from .errors import MotionError, finite
@@ -69,6 +70,54 @@ class MaterialJobs:
 
     def any_active(self):
         return bool(self.active)
+
+    def any_unstopped(self):
+        return any(self.records[job_id]["status"] != "stopped" for job_id in self.active.values())
+
+    def validate_archive(self, records, sim_time):
+        if not isinstance(records, list) or len(records) > JOB_HISTORY_LIMIT:
+            raise ValueError("SNAPSHOT_JOB_HISTORY")
+        ids, active_machines = set(), set()
+        states = {"running", "paused", "stopped", "completed", "terminated", "incomplete"}
+        for job in records:
+            if not isinstance(job, dict) or not isinstance(job["job_id"], str) or job["job_id"] in ids:
+                raise ValueError("SNAPSHOT_JOB_ID")
+            ids.add(job["job_id"])
+            if job["machine_id"] not in MATERIAL_MACHINE_IDS or job["zone"] not in self.material.config["job_zones"]:
+                raise ValueError("SNAPSHOT_JOB_MACHINE_ZONE")
+            if job["mode"] != "manual" or job["plan_version"] != "manual" or job["status"] not in states:
+                raise ValueError("SNAPSHOT_JOB_STATE")
+            if job["role"] != ("stacking" if job["machine_id"].startswith("ST") else "reclaiming"):
+                raise ValueError("SNAPSHOT_JOB_ROLE")
+            for key in ("completed_t", "requested_flow_t_per_h", "actual_flow_t_per_h", "started_sim_time"):
+                if type(job[key]) not in (float, int) or not math.isfinite(job[key]) or job[key] < 0:
+                    raise ValueError("SNAPSHOT_JOB_NUMBER")
+            if job["requested_flow_t_per_h"] <= 0 or job["started_sim_time"] > sim_time:
+                raise ValueError("SNAPSHOT_JOB_PROGRESS")
+            target = job["target_t"]
+            if target is not None and (type(target) not in (float, int) or not math.isfinite(target) or target <= 0 or job["completed_t"] > target + TARGET_TOLERANCE_T):
+                raise ValueError("SNAPSHOT_JOB_TARGET")
+            original = job.get("saved_status", job["status"]) if job["status"] == "stopped" else job["status"]
+            if original not in states:
+                raise ValueError("SNAPSHOT_JOB_SAVED_STATE")
+            if original == "completed" and (target is None or abs(target - job["completed_t"]) > TARGET_TOLERANCE_T):
+                raise ValueError("SNAPSHOT_JOB_COMPLETION")
+            if original in ("running", "paused", "stopped"):
+                if job["machine_id"] in active_machines:
+                    raise ValueError("SNAPSHOT_DUPLICATE_ACTIVE_JOB")
+                active_machines.add(job["machine_id"])
+
+    def restore_archive(self, records):
+        self.records.clear()
+        self.active.clear()
+        self.zone_owners.clear()
+        for saved in records:
+            job = copy.deepcopy(saved)
+            original = job.get("saved_status", job["status"]) if job["status"] == "stopped" else job["status"]
+            job.update(status="stopped", saved_status=original, actual_flow_t_per_h=0.0, reason="SERVER_RESTART")
+            self.records[job["job_id"]] = job
+            if original in ("running", "paused", "stopped"):
+                self.active[job["machine_id"]] = job["job_id"]
 
     def _job_of(self, machine):
         job_id = self.active.get(machine.config["machine_id"])
@@ -133,7 +182,7 @@ class MaterialJobs:
 
     def resume_job(self, machine):
         job = self._job_of(machine)
-        if job["status"] != "paused":
+        if job["status"] not in ("paused", "stopped"):
             raise MotionError("JOB_STATE", "作业不在暂停状态", 409)
         self._claim_zone(job)
         job["status"] = "running"
@@ -141,7 +190,7 @@ class MaterialJobs:
 
     def terminate_job(self, machine):
         job = self._job_of(machine)
-        if job["status"] not in ("running", "paused"):
+        if job["status"] not in ("running", "paused", "stopped"):
             raise MotionError("JOB_STATE", "作业已结束", 409)
         job["status"] = "terminated"
         job["actual_flow_t_per_h"] = 0.0

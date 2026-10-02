@@ -13,6 +13,7 @@ from .geometry import POSE_AXES, GeometryCalibration
 from .jobs import MaterialJobs, MATERIAL_MACHINE_IDS
 from .material import MaterialDomain
 from .motion import Axis, Drive
+from .persistence import SnapshotStore
 
 
 class Machine:
@@ -40,7 +41,7 @@ class Machine:
 
 
 class World:
-    def __init__(self, config=None, clock=time.monotonic, material_config=None):
+    def __init__(self, config=None, clock=time.monotonic, material_config=None, snapshot_path=None):
         self.config = config or json.loads((Path(__file__).resolve().parents[1] / "config/machines.json").read_text(encoding="utf-8"))
         self._validate_config()
         self.clock = clock
@@ -54,6 +55,43 @@ class World:
         self.sim_time = 0.0
         self.seq = 0
         self.generation = 0
+        self.store = None if snapshot_path is None else SnapshotStore(snapshot_path, copy.deepcopy(
+            dict(machines=self.config, material=self.material.config, geometry=self.geometry.config)))
+        self._last_persist_attempt = 0.0
+        if self.store is not None:
+            archive = self.store.load(self._validate_archive)
+            if archive is not None:
+                self.material.restore_archive(archive["material"])
+                self.jobs.restore_archive(archive["jobs"])
+                self.sim_time, self.seq = archive["sim_time"], archive["snapshot_seq"] + 1
+                self._last_persist_attempt = self.sim_time
+
+    def _validate_archive(self, archive):
+        if type(archive["snapshot_seq"]) is not int or archive["snapshot_seq"] < 0:
+            raise ValueError("SNAPSHOT_SEQUENCE")
+        if type(archive["sim_time"]) not in (float, int) or not math.isfinite(archive["sim_time"]) or archive["sim_time"] < 0:
+            raise ValueError("SNAPSHOT_TIME")
+        self.material.validate_archive(archive["material"])
+        self.jobs.validate_archive(archive["jobs"], archive["sim_time"])
+
+    def _require_material_recovered(self):
+        if self.store is not None and self.store.status["recovery_required"]:
+            raise MotionError("PERSISTENCE_RECOVERY_REQUIRED", "存档无法恢复，请检查存档故障并恢复有效文件后重启", 409)
+
+    def _persist(self, force=False):
+        if self.store is None or self.material.scene == "uninitialized":
+            return
+        if not force and self.sim_time - self._last_persist_attempt < 1.0 - 1e-9:
+            return
+        self._last_persist_attempt = self.sim_time
+        self.store.save(dict(configuration=self.store.configuration, snapshot_seq=self.seq,
+                             sim_time=self.sim_time, material=self.material.archive(),
+                             jobs=copy.deepcopy(list(self.jobs.records.values()))))
+
+    def save_snapshot(self):
+        """Flush a consistent snapshot on service shutdown (no HTTP write route)."""
+        with self.lock:
+            self._persist(force=True)
 
     def _validate_config(self):
         ids = set()
@@ -89,6 +127,8 @@ class World:
         m.stop()
         m.lease["state"] = "releasing"
         m.reason = reason
+        self.seq += 1
+        self._persist(force=True)
 
     def _owned(self, m, client_id, token, generation):
         self._expire(m)
@@ -154,6 +194,10 @@ class World:
             m.last_seq = command_seq
             m.last_command_id = command_id
             self.seq += 1
+            if kind in ("start_job", "pause_job", "resume_job", "terminate_job", "finish_job",
+                        "reset_material", "reset", "stop", "estop") or (
+                            kind in ("set_wheel", "set_belt") and payload.get("speed") == 0):
+                self._persist(force=True)
             result = dict(command_id=command_id, accepted=True, snapshot_seq=self.seq, machine=self._snapshot(m))
             if kind == "reset_material":
                 result["material"] = self.material.state()
@@ -163,6 +207,8 @@ class World:
             return result
 
     def _apply(self, m, kind, p):
+        if kind in ("start_job", "resume_job", "reset_material"):
+            self._require_material_recovered()
         allowed = {
             "set_targets": {"targets"}, "jog": {"axis", "direction", "speed"}, "stop_jog": {"axis"},
             "set_wheel": {"speed"}, "set_belt": {"speed"}, "stop": set(), "estop": set(),
@@ -265,7 +311,7 @@ class World:
             seen.add(machine_id)
         if seen != required:
             raise MotionError("CONTROL_REQUIRED", "重置需要同时持有 ST01 和 RC01 的控制权", 403)
-        if self.jobs.any_active():
+        if self.jobs.any_unstopped():
             raise MotionError("JOB_ACTIVE", "相关物料作业必须结束后才能重置", 409)
         if any(self.machine(machine_id).moving() for machine_id in MATERIAL_MACHINE_IDS):
             raise MotionError("MACHINE_MOVING", "相关设备必须停稳后才能重置", 409)
@@ -274,7 +320,7 @@ class World:
             raise MotionError("INVALID_COMMAND", "确认字段必须为布尔值", 422)
         if self.material.scene != "uninitialized" and not confirm:
             raise MotionError("CONFIRM_REQUIRED", "重新初始化物料需要二次确认", 409)
-        self.init_material(payload.get("mode"), confirm)
+        self._replace_material(payload.get("mode"), confirm)
 
     def init_material(self, mode, confirm=False):
         """Trusted in-process setup for startup/tests; never an HTTP write seam.
@@ -282,14 +328,24 @@ class World:
         Client writes must use the authenticated reset_material command.
         """
         with self.lock:
-            if self.jobs.any_active():
-                raise MotionError("JOB_ACTIVE", "物料作业进行中，不能重新初始化场景", 409)
-            current = self.material.state()
-            if current["scene"] != "uninitialized" and current["inventory"]["total_m3"] > 0 and not confirm:
-                raise MotionError("CONFIRM_REQUIRED", "物料场景非空，重新初始化需要二次确认", 409)
-            self.material.init_scene(mode)
-            self.seq += 1
+            self._replace_material(mode, confirm)
+            self._persist(force=True)
             return self.material.state()
+
+    def _replace_material(self, mode, confirm):
+        self._require_material_recovered()
+        if mode not in ("empty", "preset"):
+            raise MotionError("INVALID_SCENE", "未知物料场景模式", 422)
+        if self.jobs.any_unstopped():
+            raise MotionError("JOB_ACTIVE", "物料作业进行中，不能重新初始化场景", 409)
+        current = self.material.state()
+        if current["scene"] != "uninitialized" and current["inventory"]["total_m3"] > 0 and not confirm:
+            raise MotionError("CONFIRM_REQUIRED", "物料场景非空，重新初始化需要二次确认", 409)
+        for machine in self.machines.values():
+            if machine.config["machine_id"] in self.jobs.active:
+                self.jobs.protect(machine, "MATERIAL_RESET", terminate=True)
+        self.material.init_scene(mode)
+        self.seq += 1
 
     def machine_geometry(self, machine_id):
         with self.lock:
@@ -342,6 +398,7 @@ class World:
             self.material.settle_slopes()
             self.sim_time += dt
             self.seq += 1
+            self._persist()
 
     def _snapshot(self, m):
         lease = m.lease
@@ -359,5 +416,7 @@ class World:
                         sim_time=self.sim_time, snapshot_seq=self.seq,
                         material=self.material.state(),
                         jobs=self.jobs.snapshot(),
-                          zone_occupancy=self.jobs.zone_snapshot(),
+                        zone_occupancy=self.jobs.zone_snapshot(),
+                        persistence=copy.deepcopy(self.store.status) if self.store else
+                        dict(enabled=False, last_saved_at_utc=None, error=None, recovery_required=False),
                         machines={n: self._snapshot(m) for n, m in self.machines.items()})
