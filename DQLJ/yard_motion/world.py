@@ -370,12 +370,25 @@ class World:
             return dict(server_instance_id=self.instance, snapshot_seq=self.seq,
                         sim_time=self.sim_time, material_config_version=material.config["version"],
                         material=material.state(),
+                        jobs=self.jobs.snapshot(), zone_occupancy=self.jobs.zone_snapshot(),
+                        persistence=copy.deepcopy(self.store.status) if self.store else dict(enabled=False),
                         grid=dict(material.config["grid"],
                                   array_order="z-major", sample_location="cell_center",
                                   coal_thickness_m=list(material.heights),
                                   ground_elevation_m=list(material.ground),
                                   zone_codes=list(material.zone_code),
                                   zone_labels={"0": "outside", "1": "spill", "2": "yard"}))
+
+    def material_update(self, server_instance_id, base_version):
+        with self.lock:
+            if server_instance_id != self.instance:
+                raise MotionError("MATERIAL_FULL_REQUIRED", "服务实例变化，请重新获取完整煤形", 409)
+            changes = self.material.update_since(base_version)
+            return dict(server_instance_id=self.instance, snapshot_seq=self.seq, sim_time=self.sim_time,
+                        material_config_version=self.material.config["version"], base_version=base_version,
+                        new_version=self.material.version, changes=changes, material=self.material.state(),
+                        jobs=self.jobs.snapshot(), zone_occupancy=self.jobs.zone_snapshot(),
+                        persistence=copy.deepcopy(self.store.status) if self.store else dict(enabled=False))
 
     def advance(self, dt):
         with self.lock:

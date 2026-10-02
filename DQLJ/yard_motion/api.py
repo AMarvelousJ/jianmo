@@ -128,6 +128,10 @@ def create_app(world=None, run_clock=True):
     def material_grid():
         return world.material_grid()
 
+    @app.get("/api/material/update")
+    def material_update(server_instance_id: str, base_version: int):
+        return world.material_update(server_instance_id, base_version)
+
     @app.get("/api/geometry/config")
     def geometry_config():
         return world.geometry.config

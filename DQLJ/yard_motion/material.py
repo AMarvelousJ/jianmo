@@ -48,6 +48,8 @@ class MaterialDomain:
         self.zone_code = self._classify_cells()
         self.scene = "uninitialized"
         self.version = 0
+        self.cell_versions = [0] * (self.nx * self.nz)
+        self.full_version = 0
         self.ledger = dict(initial_m3=0.0, received_m3=0.0, output_m3=0.0)
         self.in_zone_m3 = 0.0
         self.spilled_m3 = 0.0
@@ -131,6 +133,8 @@ class MaterialDomain:
         self.scene = mode
         self.ledger = dict(initial_m3=self.in_zone_m3 + self.spilled_m3, received_m3=0.0, output_m3=0.0)
         self.version += 1
+        self.full_version = self.version
+        self.cell_versions = [self.version] * (self.nx * self.nz)
 
     def _rasterize_preset(self):
         p = self.config["preset"]
@@ -209,7 +213,7 @@ class MaterialDomain:
 
     def settle_slopes(self):
         """Budgeted local eight-neighbour exchanges, conserved across yard/spill masks."""
-        start=time.perf_counter(); iterations=0; changed=False
+        start=time.perf_counter(); iterations=0; changed=False; changed_cells=set()
         slope=math.tan(math.radians(self.coal["repose_angle_deg"]))
         while self._relax_queue and iterations<self.relaxation["iteration_budget"]:
             if iterations%128==0 and time.perf_counter()-start>=self.relaxation["time_budget_s"]: break
@@ -226,7 +230,10 @@ class MaterialDomain:
             volume=transfer*self.cell_area
             self._accumulate_zone_inventory(donor,-volume);self._accumulate_zone_inventory(receiver,volume)
             self._queue_neighbours(donor);self._queue_neighbours(receiver);changed=True
-        if changed: self.version+=1
+            changed_cells.update((donor, receiver))
+        if changed:
+            self.version+=1
+            self._stamp(changed_cells)
         self.relaxation.update(converged=not self._relax_queue,iterations=iterations,pending=len(self._relax_queue),
                                elapsed_s=time.perf_counter()-start)
 
@@ -240,6 +247,7 @@ class MaterialDomain:
             self._accumulate_zone_inventory(index,-removed)
             self._queue_neighbours(index)
         self.ledger["output_m3"]+=actual;self.version+=1
+        self._stamp(contacts)
         return actual
 
     def deposit(self, x, z, volume, ceiling_y=None):
@@ -283,6 +291,7 @@ class MaterialDomain:
                     accepted += delta
         self.ledger["received_m3"] += accepted
         self.version += 1
+        self._stamp(cells)
         reason = None
         if accepted < volume - 1e-9:
             reason = "RECEIVE_LIMITED"
@@ -310,7 +319,20 @@ class MaterialDomain:
                 self._accumulate_zone_inventory(index, -delta)
         self.ledger["output_m3"] += actual
         self.version += 1
+        self._stamp(cells)
         return actual
+
+    def _stamp(self, indices):
+        for index in indices:
+            self.cell_versions[index] = self.version
+
+    def update_since(self, base_version):
+        if type(base_version) is not int or base_version < 0:
+            raise MotionError("INVALID_COMMAND", "煤形基准版本无效", 422)
+        if base_version < self.full_version or base_version > self.version:
+            raise MotionError("MATERIAL_FULL_REQUIRED", "煤形基准不可用，请重新获取完整煤形", 409)
+        indices = [index for index, version in enumerate(self.cell_versions) if version > base_version]
+        return dict(indices=indices, coal_thickness_m=[self.heights[index] for index in indices])
 
     def state(self):
         density = self.coal["density_t_per_m3"]
@@ -365,6 +387,8 @@ class MaterialDomain:
     def restore_archive(self, data):
         self.heights, self.ground = list(data["heights"]), list(data["ground"])
         self.scene, self.version = data["scene"], data["version"]
+        self.full_version = self.version
+        self.cell_versions = [self.version] * (self.nx * self.nz)
         self.ledger = dict(data["ledger"])
         self.in_zone_m3 = sum(h * self.cell_area for h, code in zip(self.heights, self.zone_code) if code == _ZONE_YARD)
         self.spilled_m3 = sum(h * self.cell_area for h, code in zip(self.heights, self.zone_code) if code == _ZONE_SPILL)
