@@ -99,9 +99,9 @@ def test_start_job_validates_zone_mode_and_flow():
     assert world.state()["jobs"] == {}
 
 
-def test_start_job_on_reclaiming_machine_is_unsupported():
+def test_start_job_outside_pilot_pair_is_unsupported():
     world = ready_world()
-    op = Operator(world, "RC01")
+    op = Operator(world, "RC02")
     with pytest.raises(MotionError) as info:
         op.send("start_job", START_PAYLOAD)
     assert info.value.code == "JOB_UNSUPPORTED"
@@ -171,12 +171,12 @@ def test_material_reinit_is_refused_while_job_active():
     assert world.init_material("empty", confirm=True)["scene"] == "empty"
 
 
-def test_estop_blocks_start_but_allows_pause_and_terminate():
+def test_estop_blocks_start_pauses_job_and_allows_terminate():
     world = ready_world()
     op = Operator(world, "ST01")
     op.send("start_job", START_PAYLOAD)
     op.send("estop")
-    op.send("pause_job")
+    assert only_job(world)["status"] == "paused"
     op.send("terminate_job")
     with pytest.raises(MotionError) as info:
         op.send("start_job", START_PAYLOAD)

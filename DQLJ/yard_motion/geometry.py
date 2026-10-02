@@ -61,6 +61,21 @@ class GeometryCalibration:
                 raise ValueError("Invalid wheel geometry parameter: %s" % key)
         if wheel["swept_radius"] <= 0 or wheel["axial_min"] >= wheel["axial_max"]:
             raise ValueError("Wheel envelope radius or axial extent invalid")
+        cutting=c.get("cutting")
+        if not isinstance(cutting,dict): raise ValueError("Missing cutting geometry")
+        for key in ("bucket_count","cell_quadrature"):
+            if type(cutting.get(key)) is not int or not 1<=cutting[key]<=64:
+                raise ValueError("Invalid cutting resolution")
+        for key in ("bucket_radius_model","max_angle_step_deg","max_translation_step_m"):
+            if not _finite_number(cutting.get(key)) or cutting[key]<=0:
+                raise ValueError("Invalid cutting geometry")
+        for key in ("tooth_y_model","tooth_axial_center_model"):
+            if not _finite_number(cutting.get(key)): raise ValueError("Invalid tooth centre")
+        for key in ("tooth_x_centers_model","tooth_size_model"):
+            values=cutting.get(key)
+            if not isinstance(values,list) or len(values)!=3 or any(not _finite_number(v) for v in values):
+                raise ValueError("Invalid tooth box")
+        if any(v<=0 for v in cutting["tooth_size_model"]): raise ValueError("Invalid tooth dimensions")
         candidates = c["travel_candidates"]
         if not candidates.get("version") or not isinstance(candidates.get("machines"), dict):
             raise ValueError("Travel candidates must carry a version and machine map")

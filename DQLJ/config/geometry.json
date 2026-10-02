@@ -15,6 +15,18 @@
     "axial_min": -0.432252228,
     "axial_max": 0.6597593
   },
+  "cutting": {
+    "source": "YardBucketWheelBuilder: 10 DiggingBucket groups, radial centre 3.8; three CuttingTooth boxes at x=-0.5/0/0.5,y=-0.62,z=1.12, size 0.17/0.22/0.5 model units; no enlarged cutting radius",
+    "bucket_count": 10,
+    "bucket_radius_model": 3.8,
+    "tooth_x_centers_model": [-0.5, 0.0, 0.5],
+    "tooth_y_model": -0.62,
+    "tooth_axial_center_model": 1.12,
+    "tooth_size_model": [0.17, 0.22, 0.5],
+    "cell_quadrature": 4,
+    "max_angle_step_deg": 1.0,
+    "max_translation_step_m": 0.125
+  },
   "travel_candidates": {
     "version": "travel-candidates-2026-10",
     "source": "common-band proposal from prototype analysis (ST01 upper limit -395, RC01 lower limit -425, 30-unit shared X band); requires verification against actual rail ends and neighbour machines before any change to official machine config",

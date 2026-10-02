@@ -7,7 +7,8 @@ checkable from every state snapshot without scanning the grid.
 """
 import json
 import math
-from collections import namedtuple
+from collections import namedtuple, deque
+import time
 from pathlib import Path
 
 from .errors import MotionError, finite
@@ -50,6 +51,10 @@ class MaterialDomain:
         self.ledger = dict(initial_m3=0.0, received_m3=0.0, output_m3=0.0)
         self.in_zone_m3 = 0.0
         self.spilled_m3 = 0.0
+        self._relax_queue = deque()
+        self._relax_queued = set()
+        self.relaxation = dict(converged=True, iterations=0, pending=0, tolerance_m=1e-6,
+                               iteration_budget=20000, time_budget_s=.01, elapsed_s=0.0)
 
     def _validate_config(self):
         c = self.config
@@ -115,6 +120,8 @@ class MaterialDomain:
         if mode not in ("empty", "preset"):
             raise MotionError("INVALID_SCENE", "未知物料场景模式", 422)
         self.heights = [0.0] * (self.nx * self.nz)
+        self._relax_queue.clear(); self._relax_queued.clear()
+        self.relaxation.update(converged=True,iterations=0,pending=0,elapsed_s=0.0)
         self.in_zone_m3 = 0.0
         self.spilled_m3 = 0.0
         if mode == "preset":
@@ -187,7 +194,53 @@ class MaterialDomain:
         elif code == _ZONE_SPILL:
             self.spilled_m3 += delta_volume
 
-    def deposit(self, x, z, volume):
+    def _queue_neighbours(self, index):
+        row,col=divmod(index,self.nx)
+        for dz in (-1,0,1):
+            for dx in (-1,0,1):
+                if not (dx or dz) or not (0<=row+dz<self.nz and 0<=col+dx<self.nx): continue
+                other=(row+dz)*self.nx+col+dx
+                if not self.zone_code[index] or not self.zone_code[other]: continue
+                pair=(min(index,other),max(index,other))
+                if pair not in self._relax_queued:
+                    self._relax_queue.append(pair); self._relax_queued.add(pair)
+
+    def settle_slopes(self):
+        """Budgeted local eight-neighbour exchanges, conserved across yard/spill masks."""
+        start=time.perf_counter(); iterations=0; changed=False
+        slope=math.tan(math.radians(self.coal["repose_angle_deg"]))
+        while self._relax_queue and iterations<self.relaxation["iteration_budget"]:
+            if iterations%128==0 and time.perf_counter()-start>=self.relaxation["time_budget_s"]: break
+            a,b=self._relax_queue.popleft();self._relax_queued.remove((a,b));iterations+=1
+            ar,ac=divmod(a,self.nx);br,bc=divmod(b,self.nx)
+            allowed=slope*self.cell*math.hypot(ar-br,ac-bc)
+            delta=(self.ground[a]+self.heights[a])-(self.ground[b]+self.heights[b])
+            if abs(delta)<=allowed+self.relaxation["tolerance_m"]: continue
+            donor,receiver=(a,b) if delta>0 else (b,a)
+            transfer=min((abs(delta)-allowed)*.5,self.heights[donor],
+                         max(0,self.coal["max_height"]-self.heights[receiver]))
+            if transfer<=1e-12: continue
+            self.heights[donor]-=transfer;self.heights[receiver]+=transfer
+            volume=transfer*self.cell_area
+            self._accumulate_zone_inventory(donor,-volume);self._accumulate_zone_inventory(receiver,volume)
+            self._queue_neighbours(donor);self._queue_neighbours(receiver);changed=True
+        if changed: self.version+=1
+        self.relaxation.update(converged=not self._relax_queue,iterations=iterations,pending=len(self._relax_queue),
+                               elapsed_s=time.perf_counter()-start)
+
+    def remove_contacts(self, contacts, volume):
+        """Debit only the geometric swept contacts; collapse removed column intervals."""
+        available=sum(contacts.values());actual=min(max(0,volume),available)
+        if actual<=0: return 0.0
+        for index,contact in contacts.items():
+            removed=min(self.heights[index]*self.cell_area,contact*actual/available)
+            self.heights[index]-=removed/self.cell_area
+            self._accumulate_zone_inventory(index,-removed)
+            self._queue_neighbours(index)
+        self.ledger["output_m3"]+=actual;self.version+=1
+        return actual
+
+    def deposit(self, x, z, volume, ceiling_y=None):
         """Place volume through a truncated Gaussian falling-core kernel.
 
         Only cells inside the spill zone can receive coal; the part of the
@@ -217,12 +270,14 @@ class MaterialDomain:
             for index, weight in zip(cells, weights):
                 share = volume * weight / total_weight
                 desired_height = share / self.cell_area
-                room = max(0.0, limit - self.heights[index])
+                cell_limit=limit if ceiling_y is None else min(limit,ceiling_y-self.ground[index])
+                room = max(0.0, cell_limit - self.heights[index])
                 added_height = min(desired_height, room)
                 delta = added_height * self.cell_area
                 if delta > 0:
                     self.heights[index] += added_height
                     self._accumulate_zone_inventory(index, delta)
+                    self._queue_neighbours(index)
                     accepted += delta
         self.ledger["received_m3"] += accepted
         self.version += 1
@@ -258,7 +313,7 @@ class MaterialDomain:
     def state(self):
         density = self.coal["density_t_per_m3"]
         in_zone, spilled = self.in_zone_m3, self.spilled_m3
-        return dict(scene=self.scene, version=self.version,
+        return dict(scene=self.scene, version=self.version, relaxation=dict(self.relaxation),
                     ledger=dict(self.ledger),
                     inventory=dict(in_zone_m3=in_zone, spilled_m3=spilled, total_m3=in_zone + spilled,
                                    in_zone_t=in_zone * density, spilled_t=spilled * density,

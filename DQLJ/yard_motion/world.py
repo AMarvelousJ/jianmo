@@ -84,6 +84,7 @@ class World:
             m.lease = None
 
     def _release(self, m, reason):
+        self.jobs.protect(m,reason)
         m.stop()
         m.lease["state"] = "releasing"
         m.reason = reason
@@ -202,14 +203,18 @@ class World:
             if not 0 <= speed <= drive.config["max_speed"]:
                 raise MotionError("OUT_OF_RANGE", "速度超出范围", 422)
             drive.target_speed = speed
+            if speed==0: self.jobs.protect(m,kind)
         elif kind == "stop":
+            self.jobs.protect(m,kind)
             m.stop()
         elif kind == "estop":
+            self.jobs.protect(m,kind)
             m.stop(True)
             m.estop = True
         elif kind == "clear_estop":
             m.estop = False
         elif kind == "reset":
+            self.jobs.protect(m,kind,terminate=True)
             for a in m.axes.values():
                 a.reset()
             m.wheel.reset()
@@ -251,6 +256,8 @@ class World:
             dt = finite(dt)
             if dt < 0 or dt > 1:
                 raise ValueError("Step must be between 0 and 1 second")
+            previous={name:dict(pose={a:m.axes[a].position for a in POSE_AXES},phase=m.wheel.distance)
+                      for name,m in self.machines.items()}
             for m in self.machines.values():
                 self._expire(m)
                 for a in m.axes.values():
@@ -261,7 +268,8 @@ class World:
                 m.wheel.update(dt)
                 m.belt.update(dt)
                 self._expire(m)
-            self.jobs.step(self.machines, dt)
+            self.jobs.step(self.machines, dt, previous)
+            self.material.settle_slopes()
             self.sim_time += dt
             self.seq += 1
 

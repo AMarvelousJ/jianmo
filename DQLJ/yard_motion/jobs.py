@@ -11,6 +11,7 @@ from collections import OrderedDict
 
 from .errors import MotionError, finite
 from .geometry import POSE_AXES
+from .cutting import swept_contacts
 
 JOB_HISTORY_LIMIT = 512
 
@@ -48,7 +49,7 @@ class MaterialJobs:
         return self.records[job_id]
 
     def start_job(self, machine, zone, mode, requested_flow_t_per_h, sim_time):
-        if machine.config["role"] != "Stacking":
+        if machine.config["machine_id"] not in ("ST01", "RC01"):
             raise MotionError("JOB_UNSUPPORTED", "该设备的物料作业暂未实现", 422)
         material = self.material
         if material.scene == "uninitialized":
@@ -66,7 +67,7 @@ class MaterialJobs:
             raise MotionError("INVALID_COMMAND", "请求流量必须为正数", 422)
         job_id = "job-" + uuid.uuid4().hex
         job = dict(job_id=job_id, machine_id=machine_id, zone=zone, mode="manual",
-                   role="stacking", target_t=None, completed_t=0.0,
+                   role="stacking" if machine.config["role"] == "Stacking" else "reclaiming", target_t=None, completed_t=0.0,
                    requested_flow_t_per_h=flow, actual_flow_t_per_h=0.0,
                    status="running", reason=None, plan_version="manual",
                    started_sim_time=sim_time)
@@ -87,6 +88,13 @@ class MaterialJobs:
         job["actual_flow_t_per_h"] = 0.0
         job["reason"] = None
 
+    def protect(self, machine, reason, terminate=False):
+        job_id=self.active.get(machine.config["machine_id"])
+        if job_id is None: return
+        job=self.records[job_id]
+        job.update(status="terminated" if terminate else "paused",actual_flow_t_per_h=0.0,reason=reason)
+        if terminate: self.active.pop(machine.config["machine_id"],None)
+
     def resume_job(self, machine):
         job = self._job_of(machine)
         if job["status"] != "paused":
@@ -102,7 +110,7 @@ class MaterialJobs:
         job["reason"] = None
         self.active.pop(machine.config["machine_id"], None)
 
-    def step(self, machines, dt):
+    def step(self, machines, dt, previous=None):
         """Advance every running job by dt: derive the outlet from the authoritative
         pose, clamp the flow to request/capability/geometric acceptance, and deposit."""
         if dt <= 0:
@@ -115,6 +123,25 @@ class MaterialJobs:
             machine = machines[job["machine_id"]]
             scene = machine.config["scene"]
             pose = {axis: machine.axes[axis].position for axis in POSE_AXES}
+            if job["role"] == "reclaiming":
+                belt_cap=belt_capability_t_per_h(machine,coal)
+                wheel_cap=coal["flow_capability_t_per_h"]*max(0,machine.wheel.speed)/machine.wheel.config["max_speed"]
+                requested=min(job["requested_flow_t_per_h"],belt_cap,wheel_cap)
+                if requested<=0:
+                    job["actual_flow_t_per_h"]=0.0
+                    job["reason"]="WHEEL_NOT_RUNNING" if wheel_cap<=0 else "BELT_NOT_RUNNING"
+                    continue
+                prev=previous[job["machine_id"]]
+                contacts=swept_contacts(self.material,self.geometry,scene,prev["pose"],pose,
+                                        prev["phase"],machine.wheel.distance)
+                density=coal["density_t_per_m3"]
+                actual=self.material.remove_contacts(contacts,requested/3600*dt/density)
+                job["completed_t"]+=actual*density
+                job["actual_flow_t_per_h"]=actual*density/dt*3600
+                job["reason"]="NO_CONTACT" if actual<=0 else (
+                    "CONTACT_LIMITED" if job["actual_flow_t_per_h"]<requested-1e-8 else (
+                    "CAPABILITY_LIMITED" if requested<job["requested_flow_t_per_h"] else None))
+                continue
             outlet = self.geometry.discharge_point(scene, **pose)
             x, z = outlet["x"], outlet["z"]
             if not _contains(domain, x, z):
@@ -133,7 +160,7 @@ class MaterialJobs:
                 continue
             density = coal["density_t_per_m3"]
             volume = attempted / 3600.0 * dt / density
-            result = self.material.deposit(x, z, volume)
+            result = self.material.deposit(x, z, volume,ceiling_y=outlet["y"])
             accepted = result["accepted_m3"]
             job["completed_t"] += accepted * density
             job["actual_flow_t_per_h"] = accepted * density / dt * 3600.0
