@@ -45,7 +45,7 @@ class MaterialSceneRequest(ControlRequest):
     controls: list[OtherMachineControl] = Field(default_factory=list)
 
 
-def create_app(world=None, run_clock=True):
+def create_app(world=None, run_clock=True, clock_step_budget=None):
     world = world or World(snapshot_path=os.environ.get("DQLJ_SNAPSHOT_PATH") or
                            Path(__file__).resolve().parents[1] / "data/material-snapshot.json")
 
@@ -59,10 +59,13 @@ def create_app(world=None, run_clock=True):
             accumulator += now - last
             last = now
             # Expiry uses wall clock even if a temporarily stalled service catches up.
+            advanced = 0
             while accumulator >= step:
                 world.advance(step)
                 accumulator -= step
-                if accumulator > 1:
+                advanced += 1
+                if accumulator > 1 or clock_step_budget is not None and advanced >= clock_step_budget:
+                    advanced = 0
                     await asyncio.sleep(0)
 
     @asynccontextmanager
