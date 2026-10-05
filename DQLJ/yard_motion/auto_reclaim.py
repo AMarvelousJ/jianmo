@@ -1,7 +1,7 @@
-"""One top-layer strip, planned from the current preview material and actual rig.
+"""One or two top-layer strips, planned from current material and actual rig.
 
 This controller schedules motion only. ReclaimPilot owns cutting, inventory and
-the final collision guard. Completion means one strip, never the entire pile.
+the final collision guard. Completion means the selected strips, never a cleared layer.
 """
 import copy
 from concurrent.futures import ThreadPoolExecutor
@@ -21,11 +21,12 @@ def pose_of(machine):
 
 
 class AutoReclaim:
-    VERSION = 'rc01-auto-single-strip-v1'
+    VERSION = 'rc01-auto-return-feed-v1'
     SPEEDS = {'travel': .5, 'slew': 1., 'luff': 1.}
     CUTTING_SLEW_SPEED = .35
     ACTIVE = {'PLANNING', 'RAISING', 'POSITIONING', 'ALIGNING', 'DRIVES_READY', 'APPROACHING',
-              'SWEEPING', 'EDGE_CONFIRM', 'STOPPING'}
+              'SWEEPING', 'EDGE_CONFIRM', 'STOPPING', 'STRIP_STOPPING', 'RETRACTING',
+              'PLANNING_NEXT', 'FEEDING'}
 
     def __init__(self, pilot):
         self.pilot = pilot
@@ -41,6 +42,8 @@ class AutoReclaim:
         self.exit_classification = None
         self.edge_confirmed = False
         self.exit_elapsed = 0.
+        self.strip_limit = 1
+        self.completed_strips = []
 
     @property
     def active(self):
@@ -50,9 +53,12 @@ class AutoReclaim:
         if self.active or machine.moving():
             raise MotionError('MACHINE_MOVING', '请先停止自动任务并停稳 RC01', 409)
         if kind == 'plan_auto_reclaim':
-            if payload or not self.pilot.initialized:
-                raise MotionError('INVALID_COMMAND', '请先创建测试煤堆，计划参数应为空', 422)
+            if payload not in ({}, {'mode': 'two_strip_return'}) or not self.pilot.initialized:
+                raise MotionError('INVALID_COMMAND', '请创建测试煤堆并选择单带或两带往复模式', 422)
+            self.strip_limit = 2 if payload else 1
+            self.completed_strips = []
             worker = AutoReclaim(copy.deepcopy(self.pilot))
+            worker.strip_limit = self.strip_limit
             self.future = PLANNER.submit(worker._plan, copy.deepcopy(machine))
             self.planning_started = time.monotonic()
             self.plan = None
@@ -84,13 +90,15 @@ class AutoReclaim:
         self.status, self.reason = 'RAISING', 'SAFE_ENTRY'
         self._target(machine, 'luff', self.plan['safe_luff'])
 
-    def _plan(self, machine):
+    def _plan(self, machine, travel=None, floor=None, reverse=False):
         p = self.pilot
-        floor = p.GROUND + float(p.heights.max()) - .5
+        floor = p.GROUND + float(p.heights.max()) - .5 if floor is None else floor
         if floor <= p.GROUND:
             raise MotionError('NO_PLAN', '煤量不足以生成顶层单带计划', 409)
         travel_config = machine.axes['travel'].config
-        travel = float(np.clip(np.average(p.x, weights=p.heights), travel_config['minimum'], travel_config['maximum']))
+        travel = float(np.clip(np.average(p.x, weights=p.heights), travel_config['minimum'], travel_config['maximum'])) if travel is None else travel
+        if not travel_config['minimum'] <= travel <= travel_config['maximum']:
+            raise MotionError('NO_SAFE_FEED', '进车目标超出轨道限位', 409)
         safe = machine.axes['luff'].config['maximum']
         # Search safe poses with actual cutting contact above this layer floor.
         # 36 degrees spans one bucket pitch of this exported ten-bucket rig.
@@ -109,22 +117,50 @@ class AutoReclaim:
                     run = []
             if len(run) < 3:
                 continue
-            start = dict(travel=travel, slew=run[0], luff=float(luff))
-            end = dict(start, slew=run[-1])
+            start_slew, end_slew = (run[-1], run[0]) if reverse else (run[0], run[-1])
+            start = dict(travel=travel, slew=start_slew, luff=float(luff))
+            end = dict(start, slew=end_slew)
             if not p.path_clear(start, end):
                 continue
-            plan = dict(plan_id=uuid.uuid4().hex, scope='single_top_layer_strip',
+            plan = dict(plan_id=uuid.uuid4().hex, scope='two_top_layer_strips' if self.strip_limit == 2 else 'single_top_layer_strip',
                         pile_id='RC01_TEST', material_version=p.version,
                         geometry_version=p.geometry['version'], layer_bottom_y=floor,
-                        travel=travel, luff=float(luff), slew_start=run[0], slew_end=run[-1],
+                        travel=travel, luff=float(luff), slew_start=start_slew, slew_end=end_slew,
                         safe_luff=safe, speed_limits=dict(self.SPEEDS, cutting_slew=self.CUTTING_SLEW_SPEED),
                         wheel_rpm=6., belt_m_s=2., remaining_m3=float(p.heights.sum()*p.CELL**2))
             plan['start_pose'] = pose_of(machine)
             plan['wheel_path'] = [p.frame(dict(start, slew=float(a)))[2].tolist()
-                                  for a in np.linspace(run[0], run[-1], 25)]
-            self._entry_path(machine, plan)
+                                  for a in np.linspace(start_slew, end_slew, 25)]
+            try:
+                self._entry_path(machine, plan)
+            except MotionError:
+                continue
             return plan
         raise MotionError('NO_SAFE_STRIP', '未找到安全且有料的顶层回转带，请检查当前煤形与姿态', 409)
+
+    def _next_plan(self, machine, previous):
+        # Fixed, bounded candidate search; direction is selected by the real
+        # material/geometry rather than inherited from the slew direction.
+        for distance in (.1, .05, .025):
+            for direction in (1, -1):
+                try:
+                    plan = self._plan(machine, previous['travel']+direction*distance,
+                                      previous['layer_bottom_y'], reverse=True)
+                    plan['feed_m'] = plan['travel']-previous['travel']
+                    return plan
+                except MotionError:
+                    continue
+        raise MotionError('NO_SAFE_FEED', '缩短进车步长后仍无安全可切路径，请手动检查', 409)
+
+    def _finish_strip(self, machine):
+        self.completed_strips.append(dict(travel=self.plan['travel'],
+            slew_start=self.plan['slew_start'], slew_end=self.plan['slew_end'],
+            layer_bottom_y=self.plan['layer_bottom_y'], end_reclaimed_m3=self.pilot.reclaimed_m3,
+            exit_classification=self.exit_classification, edge_confirmed=self.edge_confirmed))
+        if len(self.completed_strips) < self.strip_limit:
+            self.stop(machine, 'STRIP_STOPPING', 'SAFE_EXIT_BEFORE_FEED')
+        else:
+            self.stop(machine, 'STOPPING', 'TWO_STRIPS_COMPLETE' if self.strip_limit == 2 else 'SINGLE_STRIP_COMPLETE')
 
     def _entry_path(self, machine, plan):
         pose = pose_of(machine)
@@ -143,12 +179,12 @@ class AutoReclaim:
         self.sync(machine)
         if not self.active:
             return
-        if self.status == 'PLANNING':
+        if self.status in ('PLANNING', 'PLANNING_NEXT'):
             if time.monotonic()-self.planning_started > 30:
                 self.stop(machine, 'FAILED', 'PLAN_TIMEOUT')
             return
         self.elapsed += dt
-        if self.elapsed > 180:
+        if self.elapsed > 180*self.strip_limit:
             self.stop(machine, 'FAILED', 'ACTION_TIMEOUT')
 
     def after_step(self, machine, dt):
@@ -158,7 +194,7 @@ class AutoReclaim:
         p = self.pilot
         if self.job_id:
             self.taken = max(0., p.reclaimed_m3-self.base_m3)
-        if self.status not in ('PLANNING', 'SWEEPING', 'EDGE_CONFIRM', 'STOPPING'):
+        if self.status not in ('PLANNING', 'PLANNING_NEXT', 'SWEEPING', 'EDGE_CONFIRM', 'STOPPING', 'STRIP_STOPPING'):
             self.no_progress = self.no_progress+dt if p.blocked else 0.
             if self.no_progress > 2:
                 self.stop(machine, 'BLOCKED', 'ENTRY_PATH_BLOCKED')
@@ -166,7 +202,7 @@ class AutoReclaim:
         if self.status == 'RAISING' and machine.axes['luff'].mode == 'idle':
             self.status = 'POSITIONING'
             self._target(machine, 'travel', self.plan['travel'])
-        elif self.status == 'POSITIONING' and machine.axes['travel'].mode == 'idle':
+        elif self.status in ('POSITIONING', 'FEEDING') and machine.axes['travel'].mode == 'idle':
             self.status = 'ALIGNING'
             self._target(machine, 'slew', self.plan['slew_start'])
         elif self.status == 'ALIGNING' and machine.axes['slew'].mode == 'idle':
@@ -186,7 +222,8 @@ class AutoReclaim:
                 self.stop(machine, 'BLOCKED', 'COAL_GUARD_NO_PROGRESS')
             elif machine.axes['slew'].mode == 'idle':
                 self.status, self.reason = 'EDGE_CONFIRM', 'PLANNED_STRIP_EXIT'
-                ahead = dict(pose_of(machine), slew=self.plan['slew_end']+3.)
+                direction = 1 if self.plan['slew_end'] > self.plan['slew_start'] else -1
+                ahead = dict(pose_of(machine), slew=self.plan['slew_end']+direction*3.)
                 if p.collides(ahead):
                     self.exit_classification = 'GEOMETRY_LIMIT'
                 elif p.contact_depths(ahead, 0, 36, .02, self.plan['layer_bottom_y']).sum() > 1e-8:
@@ -201,16 +238,28 @@ class AutoReclaim:
             # as a limited strip ending, never as a detected material edge.
             pitch_seconds = 36/(machine.wheel.speed*6) if machine.wheel.speed > .001 else float('inf')
             if self.exit_classification != 'MODEL_CLEAR':
-                self.stop(machine, 'STOPPING', 'SINGLE_STRIP_COMPLETE')
+                self._finish_strip(machine)
             elif self.edge_time >= pitch_seconds:
                 self.edge_confirmed = True
-                self.stop(machine, 'STOPPING', 'SINGLE_STRIP_COMPLETE')
+                self._finish_strip(machine)
             elif self.exit_elapsed > 20:
                 self.stop(machine, 'BLOCKED', 'NO_STABLE_EDGE')
+        elif self.status == 'STRIP_STOPPING' and not machine.moving():
+            self.status = 'RETRACTING'
+            self._target(machine, 'luff', self.plan['safe_luff'])
+        elif self.status == 'RETRACTING' and machine.axes['luff'].mode == 'idle':
+            worker = AutoReclaim(copy.deepcopy(p))
+            worker.strip_limit = self.strip_limit
+            self.future = PLANNER.submit(worker._next_plan, copy.deepcopy(machine), copy.deepcopy(self.plan))
+            self.planning_started = time.monotonic()
+            self.status, self.reason = 'PLANNING_NEXT', 'UPDATED_COAL_SAFE_FEED_SEARCH'
         elif self.status == 'STOPPING' and not machine.moving():
             self.status = 'COMPLETED'
 
     def stop(self, machine, status, reason):
+        # Stop drives and debit. STRIP_STOPPING deliberately continues the
+        # active job only after all motion has settled; other terminal states
+        # discard further scheduling and require explicit replanning.
         machine.stop()
         self.pilot.enabled = False
         self.pilot.actual_m3_s = 0.
@@ -223,13 +272,26 @@ class AutoReclaim:
     def sync(self, machine):
         if self.active and (not machine.lease or machine.lease['state'] != 'owned' or machine.estop):
             self.stop(machine, 'ESTOP' if machine.estop else 'CONTROL_LOST', 'ESTOP' if machine.estop else 'CONTROL_REQUIRED')
-        if self.status == 'PLANNING' and self.future and self.future.done():
+        if self.status in ('PLANNING', 'PLANNING_NEXT') and self.future and self.future.done():
+            next_strip = self.status == 'PLANNING_NEXT'
             try:
-                self.plan = self.future.result()
-                self.status, self.reason = 'PLANNED', 'EXPLICIT_START_REQUIRED'
+                plan = self.future.result()
+                if next_strip:
+                    if plan['material_version'] != self.pilot.version or plan['start_pose'] != pose_of(machine):
+                        raise MotionError('STALE_PLAN', '进车规划期间煤形或姿态已变化', 409)
+                    self.plan = plan
+                    self.pilot.cut_floor_y = plan['layer_bottom_y']
+                    self.no_progress = self.edge_time = self.exit_elapsed = 0.
+                    self.exit_classification = None
+                    self.edge_confirmed = False
+                    self.status, self.reason = 'FEEDING', 'SAFE_TRACK_FEED'
+                    self._target(machine, 'travel', plan['travel'])
+                else:
+                    self.plan = plan
+                    self.status, self.reason = 'PLANNED', 'EXPLICIT_START_REQUIRED'
             except Exception as error:
                 logging.getLogger(__name__).exception('RC01 read-only planning failed')
-                self.status, self.reason = 'FAILED', getattr(error, 'code', 'PLAN_FAILED')
+                self.stop(machine, 'BLOCKED' if next_strip else 'FAILED', getattr(error, 'code', 'PLAN_FAILED'))
             self.future = None
 
     def snapshot(self):
@@ -239,4 +301,5 @@ class AutoReclaim:
                     pile_remaining_m3=float(self.pilot.heights.sum()*self.pilot.CELL**2),
                     exit_classification=self.exit_classification, edge_confirmed=self.edge_confirmed,
                     continuous_no_flow_s=self.edge_time,
+                    completed_strips=copy.deepcopy(self.completed_strips), strip_limit=self.strip_limit,
                     active=self.active, elapsed_s=self.elapsed)
