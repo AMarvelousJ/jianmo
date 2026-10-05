@@ -157,18 +157,18 @@ class ReclaimPilot:
                 return True
         return False
 
-    def cut(self, pose, phase_before, phase_after, dt):
+    def contact_depths(self, pose, phase_before, phase_after, dt, floor_y=None):
+        depths = np.zeros_like(self.heights)
         indices = np.flatnonzero(self.heights > 1e-10)
         if not len(indices):
-            return 0.
+            return depths
         matrix, _, center = self.frame(pose)
         if (center[1]-self.cutting_radius > self.GROUND+self.heights[indices].max() or
                 center[0]+self.cutting_radius < self.x[indices].min()-self.CELL/2 or
                 center[0]-self.cutting_radius > self.x[indices].max()+self.CELL/2 or
                 center[2]+self.cutting_radius < self.z[indices].min()-self.CELL/2 or
                 center[2]-self.cutting_radius > self.z[indices].max()+self.CELL/2):
-            return 0.
-        depths = np.zeros_like(self.heights)
+            return depths
         ws = self.geometry['root_scale'] * self.geometry['wheel_scale'][0]
         for phase in np.linspace(phase_before, phase_after, max(2, math.ceil(abs(phase_after-phase_before))+1)):
             wheel_matrix = matrix @ rotation_z(phase)
@@ -185,6 +185,12 @@ class ReclaimPilot:
                                    np.maximum(0, np.minimum(self.GROUND+self.heights[contacts],tooth_center[1]+extent[1])-
                                               max(self.GROUND,tooth_center[1]-extent[1])))
                 depths[contacts] = np.maximum(depths[contacts], depth)
+        if floor_y is not None:
+            depths = np.minimum(depths, np.maximum(0, self.GROUND+self.heights-floor_y))
+        return depths
+
+    def cut(self, pose, phase_before, phase_after, dt):
+        depths = self.contact_depths(pose, phase_before, phase_after, dt, getattr(self, 'cut_floor_y', None))
         volume = float(depths.sum()*self.CELL**2)
         if volume > self.MAX_FLOW_M3_S*dt:
             depths *= self.MAX_FLOW_M3_S*dt / volume
@@ -245,8 +251,24 @@ class PreviewWorld(World):
     def __init__(self, config, **kwargs):
         super().__init__(config=config, **kwargs)
         self.pilot = ReclaimPilot(self.machines['RC01'].config['scene'])
+        from .auto_reclaim import AutoReclaim
+        self.auto = AutoReclaim(self.pilot)
 
     def _apply(self, machine, kind, payload):
+        if kind in ('pause_auto_reclaim', 'cancel_auto_reclaim', 'take_manual_control'):
+            if machine.config['machine_id'] != 'RC01' or payload:
+                raise MotionError('INVALID_COMMAND', '自动试验仅支持 RC01 且参数应为空', 422)
+            self.auto.stop(machine, 'PAUSED' if kind != 'cancel_auto_reclaim' else 'CANCELLED', kind)
+            return
+        if kind in ('plan_auto_reclaim', 'start_auto_reclaim'):
+            if machine.config['machine_id'] != 'RC01':
+                raise MotionError('PILOT_MACHINE', '自动试验仅支持 RC01', 422)
+            self.auto.command(machine, kind, payload)
+            return
+        if machine.config['machine_id'] == 'RC01' and self.auto.active and (
+                kind in ('set_targets', 'jog', 'reset', 'reset_reclaim_pilot', 'set_reclaim_pilot') or
+                kind in ('set_wheel', 'set_belt') and payload.get('speed') != 0):
+            raise MotionError('AUTO_ACTIVE', '自动任务执行中，请先暂停或手动接管', 409)
         if kind in ('reset_reclaim_pilot', 'set_reclaim_pilot'):
             if machine.config['machine_id'] != 'RC01':
                 raise MotionError('PILOT_MACHINE', '试验仅支持 RC01', 422)
@@ -254,6 +276,10 @@ class PreviewWorld(World):
                 if payload or machine.moving():
                     raise MotionError('MACHINE_MOVING', '请先停稳 RC01，再恢复测试煤堆', 409)
                 self.pilot.reset({n:a.position for n,a in machine.axes.items()})
+                self.auto.plan = None
+                self.auto.job_id = None
+                self.auto.taken = 0.
+                self.auto.status, self.auto.reason = 'IDLE', 'PILE_RESET'
             else:
                 if set(payload) != {'enabled'} or type(payload['enabled']) is not bool:
                     raise MotionError('INVALID_COMMAND', '试验启用参数无效', 422)
@@ -272,6 +298,8 @@ class PreviewWorld(World):
                 kind in ('set_wheel','set_belt') and payload.get('speed') == 0):
             self.pilot.enabled = False
             self.pilot.actual_m3_s = 0.
+            if self.auto.active:
+                self.auto.stop(machine, 'ESTOP' if kind == 'estop' else 'PAUSED', kind)
 
     def advance(self, dt):
         if not math.isfinite(dt) or not 0 <= dt <= 1:
@@ -284,17 +312,22 @@ class PreviewWorld(World):
                 machine = self.machines['RC01']
                 before = {n:a.position for n,a in machine.axes.items()}
                 phase = machine.wheel.distance
+                self.auto.before_step(machine, h)
                 super().advance(h)
                 self.pilot.step(machine, before, phase, h)
+                self.auto.after_step(machine, h)
 
     def state(self):
         with self.lock:
             state = super().state()
             machine = self.machines['RC01']
+            self.auto.sync(machine)
+            state['machines']['RC01'] = self._snapshot(machine)
             if not machine.lease or machine.lease['state'] != 'owned':
                 self.pilot.enabled = False
                 self.pilot.actual_m3_s = 0.
             state['reclaim_pilot'] = self.pilot.snapshot()
             pose = {n:a.position for n,a in machine.axes.items()}
             state['reclaim_pilot']['wheel_center'] = self.pilot.frame(pose)[2].tolist()
+            state['auto_reclaim'] = self.auto.snapshot()
             return state

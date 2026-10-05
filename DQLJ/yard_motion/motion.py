@@ -21,9 +21,10 @@ class Axis:
         if immediate:
             self.velocity = 0.0
 
-    def set_target(self, value):
+    def set_target(self, value, speed_limit=None):
         self.target = value
         self.mode = "target"
+        self.requested_speed = self.config["max_speed"] if speed_limit is None else speed_limit
 
     def jog(self, speed, deadline):
         self.target = None
@@ -48,7 +49,7 @@ class Axis:
             c["maximum"] if self.requested_speed > 0 else c["minimum"])
         distance = goal - self.position
         direction = 1 if distance > 0 else -1
-        max_speed = c["max_speed"] if self.mode == "target" else abs(self.requested_speed)
+        max_speed = min(c["max_speed"], abs(self.requested_speed))
         braking = self.mode not in ("target", "jog") or old * distance < 0 or (
             speed > 0 and abs(distance) <= speed * speed / (2 * c["deceleration"]) + 1e-9)
         if braking:

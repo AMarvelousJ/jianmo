@@ -6,14 +6,17 @@ if ($listener) {
     $config = Invoke-RestMethod 'http://127.0.0.1:8002/api/machines'
     if ($config.config_version -ne 'yard-video-preview-v3') { throw 'Port 8002 is occupied by another service' }
     $state = Invoke-RestMethod 'http://127.0.0.1:8002/api/state'
-    if ($state.reclaim_pilot.version -eq 'rc01-coal-pilot-v1') {
-        Write-Output 'Video-preview service with RC01 coal pilot is already running at http://127.0.0.1:8002'
+    if ($state.auto_reclaim.version -eq 'rc01-auto-single-strip-v1') {
+        Write-Output 'Video-preview service with RC01 automatic single-strip pilot is already running at http://127.0.0.1:8002'
         return
+    }
+    if (@($state.machines.PSObject.Properties.Value | Where-Object { $_.running -or $_.control }).Count -gt 0) {
+        throw 'Preview machines have active motion or control; stop and release them before upgrading'
     }
     # Upgrade only the verified preview process, never an unrelated listener.
     $previewOwner = Get-CimInstance Win32_Process -Filter ('ProcessId = ' + $listener.OwningProcess)
     if (!$previewOwner -or $previewOwner.CommandLine -notlike '*uvicorn*yard_motion.preview:create_preview_app*--port 8002*') {
-        throw 'Existing v3 service lacks the RC01 pilot; stop that service manually before restarting'
+        throw 'Existing v3 service lacks the automatic pilot; stop that service manually before restarting'
     }
     Stop-Process -Id $listener.OwningProcess
 }
