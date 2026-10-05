@@ -13,6 +13,7 @@ import numpy as np
 
 from .errors import MotionError
 from .world import World
+from .auto_reclaim import AutoReclaim
 
 
 def rotation_y(angle):
@@ -48,6 +49,7 @@ class ReclaimPilot:
         self.z = self.Z + (iz.ravel() + .5) * self.CELL
         self.initial_m3 = self.reclaimed_m3 = 0.
         self.actual_m3_s = 0.
+        self.cut_floor_y = None
         self.reason = 'NOT_INITIALIZED'
         self.blocked = False
         self.protected_centers = np.array([b['center'] for b in self.geometry['protected_boom_boxes']])
@@ -190,7 +192,7 @@ class ReclaimPilot:
         return depths
 
     def cut(self, pose, phase_before, phase_after, dt):
-        depths = self.contact_depths(pose, phase_before, phase_after, dt, getattr(self, 'cut_floor_y', None))
+        depths = self.contact_depths(pose, phase_before, phase_after, dt, self.cut_floor_y)
         volume = float(depths.sum()*self.CELL**2)
         if volume > self.MAX_FLOW_M3_S*dt:
             depths *= self.MAX_FLOW_M3_S*dt / volume
@@ -251,7 +253,6 @@ class PreviewWorld(World):
     def __init__(self, config, **kwargs):
         super().__init__(config=config, **kwargs)
         self.pilot = ReclaimPilot(self.machines['RC01'].config['scene'])
-        from .auto_reclaim import AutoReclaim
         self.auto = AutoReclaim(self.pilot)
 
     def _apply(self, machine, kind, payload):
@@ -276,10 +277,8 @@ class PreviewWorld(World):
                 if payload or machine.moving():
                     raise MotionError('MACHINE_MOVING', '请先停稳 RC01，再恢复测试煤堆', 409)
                 self.pilot.reset({n:a.position for n,a in machine.axes.items()})
-                self.auto.plan = None
-                self.auto.job_id = None
-                self.auto.taken = 0.
-                self.auto.status, self.auto.reason = 'IDLE', 'PILE_RESET'
+                self.auto = AutoReclaim(self.pilot)
+                self.auto.reason = 'PILE_RESET'
             else:
                 if set(payload) != {'enabled'} or type(payload['enabled']) is not bool:
                     raise MotionError('INVALID_COMMAND', '试验启用参数无效', 422)

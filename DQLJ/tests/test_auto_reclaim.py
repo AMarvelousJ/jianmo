@@ -40,6 +40,10 @@ def test_plan_is_read_only_and_one_automatic_sweep_reclaims_real_volume():
     assert pile['initial_m3'] == pytest.approx(pile['remaining_m3'] + pile['reclaimed_m3'], abs=1e-9)
     assert pile['remaining_m3'] > 0
     assert job['reason'] == 'SINGLE_STRIP_COMPLETE'
+    assert job['exit_classification'] in ('MODEL_CLEAR', 'GEOMETRY_LIMIT', 'PLANNED_LIMIT')
+    if job['edge_confirmed']:
+        assert job['exit_classification'] == 'MODEL_CLEAR'
+        assert job['continuous_no_flow_s'] >= 1.0
     floor = plan['layer_bottom_y'] - pile['grid']['ground']
     for old, new in zip(before['reclaim_pilot']['heights'], pile['heights']):
         if new < old:
@@ -99,6 +103,17 @@ def test_old_pose_plan_is_rejected_and_repeated_start_does_not_create_another_jo
     assert state['auto_reclaim']['status'] == 'CONTROL_LOST'
     assert not state['reclaim_pilot']['enabled']
     assert s.run(4)['reclaim_pilot']['reclaimed_m3'] == 0
+
+
+def test_immediate_pause_requires_replanning_even_without_pose_or_material_change():
+    s=PilotSession()
+    s.command('reset_reclaim_pilot')
+    s.command('plan_auto_reclaim')
+    plan=await_plan(s)
+    s.command('start_auto_reclaim',plan_id=plan['plan_id'])
+    s.command('pause_auto_reclaim')
+    with pytest.raises(MotionError,match='重新生成计划'):
+        s.command('start_auto_reclaim',plan_id=plan['plan_id'])
 
 
 def test_planning_http_is_nonblocking_heartbeats_remain_available_and_reset_invalidates_plan():
