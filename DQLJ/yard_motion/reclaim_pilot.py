@@ -50,6 +50,7 @@ class ReclaimPilot:
         self.initial_m3 = self.reclaimed_m3 = 0.
         self.actual_m3_s = 0.
         self.cut_floor_y = None
+        self.cut_ceiling_y = None
         self.reason = 'NOT_INITIALIZED'
         self.blocked = False
         self.protected_centers = np.array([b['center'] for b in self.geometry['protected_boom_boxes']])
@@ -77,6 +78,7 @@ class ReclaimPilot:
             self.heights = old
             raise MotionError('PILE_COLLISION', '恢复位置与 RC01 相交，请先退出测试区', 409)
         self.initialized, self.enabled = True, False
+        self.cut_floor_y = self.cut_ceiling_y = None
         self.initial_m3 = float(candidate.sum() * self.CELL**2)
         self.reclaimed_m3 = self.actual_m3_s = 0.
         self.version += 1
@@ -159,9 +161,16 @@ class ReclaimPilot:
                 return True
         return False
 
-    def contact_depths(self, pose, phase_before, phase_after, dt, floor_y=None):
+    def contact_depths(self, pose, phase_before, phase_after, dt, floor_y=None, ceiling_y=None):
         depths = np.zeros_like(self.heights)
-        indices = np.flatnonzero(self.heights > 1e-10)
+        eligible = self.heights > 1e-10
+        if floor_y is not None:
+            eligible &= self.GROUND+self.heights > floor_y
+        if ceiling_y is not None:
+            # A column is solid: lower-layer cutting may not debit buried coal
+            # through an upper column. Its complete current surface must be exposed.
+            eligible &= self.GROUND+self.heights <= ceiling_y+1e-8
+        indices = np.flatnonzero(eligible)
         if not len(indices):
             return depths
         matrix, _, center = self.frame(pose)
@@ -192,7 +201,7 @@ class ReclaimPilot:
         return depths
 
     def cut(self, pose, phase_before, phase_after, dt):
-        depths = self.contact_depths(pose, phase_before, phase_after, dt, self.cut_floor_y)
+        depths = self.contact_depths(pose, phase_before, phase_after, dt, self.cut_floor_y, self.cut_ceiling_y)
         volume = float(depths.sum()*self.CELL**2)
         if volume > self.MAX_FLOW_M3_S*dt:
             depths *= self.MAX_FLOW_M3_S*dt / volume

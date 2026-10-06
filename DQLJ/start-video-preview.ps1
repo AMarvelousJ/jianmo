@@ -6,8 +6,8 @@ if ($listener) {
     $config = Invoke-RestMethod 'http://127.0.0.1:8002/api/machines'
     if ($config.config_version -ne 'yard-video-preview-v3') { throw 'Port 8002 is occupied by another service' }
     $state = Invoke-RestMethod 'http://127.0.0.1:8002/api/state'
-    if ($state.auto_reclaim.version -eq 'rc01-auto-return-feed-v1') {
-        Write-Output 'Video-preview service with RC01 automatic return/feed pilot is already running at http://127.0.0.1:8002'
+    if ($state.auto_reclaim.version -eq 'rc01-auto-layers-v1') {
+        Write-Output 'Video-preview service with RC01 bounded layer pilot is already running at http://127.0.0.1:8002'
         return
     }
     if (@($state.machines.PSObject.Properties.Value | Where-Object { $_.running -or $_.control }).Count -gt 0) {
