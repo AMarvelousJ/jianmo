@@ -1,0 +1,148 @@
+# Shiploader Motion Simulation
+
+黄骅 8,000 t/h 装船机多自由度仿真系统。项目以 FastAPI 维护权威仿真状态，以原生 JavaScript 和 Three.js 提供浏览器三维操作界面。
+
+本程序位于仓库的 `ZCJ/` 目录；以下命令均在该目录执行。
+
+当前 P0 能力包括：
+
+- SL15 五轴匀速运动、正运动学和稳定状态快照。
+- 船舶、货舱、舱盖及 `10 × 8` 舱口网格场景。
+- 单目标网格预览和六阶段安全路径任务。
+- “华元503”三轮十二批一键装船，目标总量 `52,100 t`。
+- 暂停、继续、终止、重置、幂等、联锁和结构化事件。
+- 装载进度、活动舱高亮、计划完成度填充和煤流表现。
+- 可选的 Allen-Bradley PLC 反馈同步；默认关闭。
+
+> 一键装船仅用于仿真演示，不连接或控制真实 PLC，也不替代真实配载、稳性或吃水计算。
+
+## 快速开始
+
+要求 Python 3.10 或更高版本。以下 Windows PowerShell 命令从
+`D:\3D\Python\jianmo\ZCJ` 执行，使用工作区现有的共享虚拟环境；首次安装依赖时运行：
+
+```powershell
+& ..\.venv\Scripts\python.exe -m pip install -e .
+```
+
+启动本机 `8000` 端口的后端（脚本会在后台启动并写入 `..\logs\`）：
+
+```powershell
+.\scripts\start_unity_backend.ps1
+```
+
+如果需要在当前终端查看服务日志，可改为前台启动：
+
+```powershell
+& ..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+两种启动方式只选一种。启动后检查健康状态和仿真快照：
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+Invoke-RestMethod http://127.0.0.1:8000/api/state
+```
+
+浏览器打开：
+
+```text
+http://127.0.0.1:8000/
+```
+
+若 `8000` 端口已经被占用，先确认当前服务的 `/health` 和 `/api/state`
+确实属于本项目，再决定是否需要重启。不要同时启动第二个实例。
+在 Windows 上请使用上述虚拟环境的 `python.exe`，避免裸 `python`
+解析到 WindowsApps 占位程序。运行测试可执行
+`& ..\.venv\Scripts\python.exe -m pytest -q`。
+
+右侧“一键装船”使用默认演示倍率：
+
+- 机械定位：`12×`
+- 装载业务时间：`600×`
+- 首轮排水：`50,400s → 14s`
+
+完整本地演示约 4.5 分钟。吨位内部以整数千克累计，完成值严格为 `52,100,000 kg`。任务、事件和幂等映射仅保存在当前进程内，服务重启后不恢复。
+
+## 主要 API
+
+```text
+GET  /api/state
+POST /api/simulation/step|pause|resume|reset
+PUT  /api/simulation/clock/clients/{client_id}
+DELETE /api/simulation/clock/clients/{client_id}
+GET  /api/simulation/clock
+GET  /api/scene
+PUT  /api/scene
+
+POST /api/path-plans/preview
+POST /api/path-tasks
+GET  /api/path-tasks/current
+
+GET  /api/loading-plans/current
+POST /api/loading-plans/{plan_id}/validate
+POST /api/loading-tasks
+GET  /api/loading-tasks/current
+GET  /api/loading-tasks/{task_id}
+POST /api/loading-tasks/{task_id}/pause|resume|cancel|reset
+GET  /api/loading-tasks/{task_id}/events
+```
+
+Unity 客户端进入 Play 模式后会注册共享仿真时钟，并每秒续约。存在活动 Unity
+客户端时，后端以 `0.1s` 步长自动推进；浏览器旧版 `/step` 请求只返回当前状态，
+避免两个显示端同时推进仿真。
+
+活动整船任务持有设备控制权。此时公共路径创建、手动轴命令和手动启动皮带会返回结构化 `409` 错误。
+
+## 项目结构
+
+```text
+app/
+  api/                 FastAPI 依赖、命令服务和路由
+  config/              装船机、场景、PLC 和默认配载计划
+  core/                仿真、路径规划、装船编排和 PLC 同步
+  models/              Pydantic 数据契约
+  web/                 Three.js 页面与程序化 SL15 模型
+docs/                  PRD、技术设计、部署和交接文档
+examples/              Python/PyVista 离线演示
+scripts/               PLC 启动和验收脚本
+tests/                 单元、API、流程和视觉基线
+```
+
+## 其他演示
+
+```bash
+python examples/demo_multi_axis_motion.py
+python examples/demo_3d_motion.py
+python examples/demo_3d_motion.py --off-screen --screenshot work/shiploader_3d_demo.png
+```
+
+## Unity 实时展示
+
+Unity 工程通过 HTTP/JSON 连接本服务。启动脚本、共享仿真时钟和联通检查见
+[Unity 实时通信说明](docs/Unity实时通信说明.md)。用于业务联调时打开 Unity 的
+`SL15_Demo` 场景。
+
+## PLC 反馈同步
+
+PLC 集成默认关闭。Windows 联调入口：
+
+```powershell
+.\scripts\start_sim_with_plc.ps1 -PlcIp 10.60.97.40 -PlcSlot 0 -WebPort 8765
+```
+
+启用前应按 [SL15 PLC 实时同步部署说明](docs/SL15_PLC实时同步部署说明.md) 完成标签导入和测试控制器审查。状态接口：
+
+```text
+http://127.0.0.1:8765/api/plc/status
+```
+
+## 现役文档
+
+- [当前开发交接](docs/开发交接任务清单.md)
+- [一键装船 PRD](docs/一键装船全流程模拟_PRD.md)
+- [一键装船技术实现](docs/一键装船全流程模拟_技术实现文档.md)
+- [舱口网格路径规划 PRD](docs/装船机舱口网格目标点路径规划_PRD.md)
+- [SL15 三维模型重设计 PRD](docs/黄骅8000装船机模型重设计_PRD.md)
+
+更改公开 API、状态机、默认配载计划或演示倍率时，应同步相应 PRD/技术文档和自动化测试。

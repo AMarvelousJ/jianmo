@@ -5,8 +5,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
+$RepositoryRoot = Split-Path -Parent $ProjectRoot
 $PythonPath = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
-$LogDirectory = Join-Path $ProjectRoot "logs"
+if (-not (Test-Path -LiteralPath $PythonPath)) {
+    $PythonPath = Join-Path $RepositoryRoot ".venv\Scripts\python.exe"
+}
+$LogDirectory = Join-Path $RepositoryRoot "logs"
 $StdoutLog = Join-Path $LogDirectory "unity-backend.out.log"
 $StderrLog = Join-Path $LogDirectory "unity-backend.err.log"
 

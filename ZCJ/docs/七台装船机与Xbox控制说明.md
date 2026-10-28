@@ -4,7 +4,7 @@
 
 ## 开始操作
 
-1. 在 `Python/jianmo` 启动后端：`.venv/Scripts/python.exe -m uvicorn app.main:app --reload`。默认地址为 `http://127.0.0.1:8000`。
+1. 在 `Python/jianmo/ZCJ` 启动后端：`../.venv/Scripts/python.exe -m uvicorn app.main:app --reload`。默认地址为 `http://127.0.0.1:8000`。
 2. Unity 打开上述任一场景，点击 Play。等待作业面板显示“已连接”。
 3. 接入 Xbox 手柄，点击 Unity 的 **Game 窗口**使其获得焦点。
 4. LB / RB 切换设备。上方三台按十字键左 / 右选择船舶，然后按 A 开始装船。下方四台直接按 A。
@@ -65,7 +65,7 @@
 
 ## 验证
 
-后端测试命令：`.venv/Scripts/python.exe -m pytest -q`。
+后端测试命令：`../.venv/Scripts/python.exe -m pytest -q`。
 
 已验证七台并行完成任务、暂停期间吨位不变、手动后新建路径继续、手动输入超时停止、范围限制、旧会话和乱序拒绝、设备状态隔离及各设备时钟绑定。
 

@@ -18,14 +18,14 @@ Python FastAPI 是仿真状态的唯一真值源，Unity 通过 HTTP/JSON 读取
 在 PowerShell 中运行：
 
 ```powershell
-cd D:\3D\Python\jianmo
+cd D:\3D\Python\jianmo\ZCJ
 .\scripts\start_unity_backend.ps1
 ```
 
 也可以前台启动，方便查看日志：
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 确认以下地址返回正常：

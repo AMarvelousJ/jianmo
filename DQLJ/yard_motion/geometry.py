@@ -31,6 +31,7 @@ class GeometryCalibration:
         self._validate_config()
         kinematics = self.config["kinematics"]
         self.scale = kinematics["scale"]
+        self.yaw_offset_deg = kinematics.get("yaw_offset_deg", 0.0)
         self.pivot_height = kinematics["pivot_height"]
         self.wheel_u, self.wheel_v = kinematics["wheel_center_boom_local"]
         self.outlet_u, self.outlet_v = kinematics["outlet_boom_local"]
@@ -48,6 +49,8 @@ class GeometryCalibration:
         for key in ("scale", "pivot_height"):
             if not _finite_number(kinematics.get(key)) or kinematics[key] <= 0:
                 raise ValueError("Invalid geometry kinematics parameter: %s" % key)
+        if not _finite_number(kinematics.get("yaw_offset_deg", 0.0)):
+            raise ValueError("Invalid geometry yaw offset")
         for key in ("wheel_center_boom_local", "outlet_boom_local"):
             point = kinematics.get(key)
             if (not isinstance(point, list) or len(point) != 2
@@ -89,6 +92,8 @@ class GeometryCalibration:
             for key in ("x", "y", "z", "yaw", "scale"):
                 if key not in scene:
                     raise ValueError("Machine %s scene config missing %s" % (machine.get("machine_id"), key))
+            if not _finite_number(scene.get("rest_slew_offset", 0.0)):
+                raise ValueError("Machine %s has invalid rest slew offset" % machine.get("machine_id"))
             if scene["scale"] != self.scale:
                 raise ValueError("Machine %s scene scale %s does not match calibration scale %s"
                                  % (machine["machine_id"], scene["scale"], self.scale))
@@ -100,7 +105,8 @@ class GeometryCalibration:
                 raise ValueError("Travel candidate references unknown machine %s" % machine_id)
 
     def _boom_point(self, scene, travel, slew, luff, u, v):
-        theta = math.radians(scene["yaw"] - slew)
+        theta = math.radians(scene["yaw"] + self.yaw_offset_deg +
+                             scene.get("rest_slew_offset", 0.0) - slew)
         boom_x, boom_z = math.cos(theta), -math.sin(theta)
         angle = math.radians(luff)
         along = u * math.cos(angle) - v * math.sin(angle)
@@ -119,7 +125,8 @@ class GeometryCalibration:
     def wheel_envelope(self, scene, travel, slew, luff):
         """Full-revolution bucket-wheel cutting envelope from the measured geometry."""
         travel, slew, luff = finite(travel), finite(slew), finite(luff)
-        theta = math.radians(scene["yaw"] - slew)
+        theta = math.radians(scene["yaw"] + self.yaw_offset_deg +
+                             scene.get("rest_slew_offset", 0.0) - slew)
         return dict(
             center=self._boom_point(scene, travel, slew, luff, self.wheel_u, self.wheel_v),
             swept_radius=self.swept_radius,

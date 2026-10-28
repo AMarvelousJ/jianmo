@@ -6,7 +6,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
+$repositoryRoot = Split-Path -Parent $projectRoot
 $projectPython = Join-Path $projectRoot ".venv\Scripts\python.exe"
+if (-not (Test-Path -LiteralPath $projectPython)) {
+    $projectPython = Join-Path $repositoryRoot ".venv\Scripts\python.exe"
+}
 
 if (-not (Test-Path -LiteralPath $projectPython)) {
     throw "Python virtual environment was not found at $projectPython"

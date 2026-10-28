@@ -37,9 +37,12 @@ class ReclaimPilot:
     MAX_DEPTH_M_S = .3
     CLEARANCE = .025
 
-    def __init__(self, scene):
+    def __init__(self, scene, root_scale=None):
         self.geometry = json.loads((Path(__file__).resolve().parents[1] /
                                     'config/rc01-preview-geometry.json').read_text(encoding='utf-8'))
+        if root_scale is not None:
+            self.geometry['root_scale'] = root_scale
+            self.geometry['version'] += '-real-scale'
         self.scene = scene
         self.initialized = self.enabled = False
         self.version = 0
@@ -61,7 +64,7 @@ class ReclaimPilot:
                                   for b in self.cutting_boxes) * self.geometry['root_scale'] * self.geometry['wheel_scale'][0]
 
     def frame(self, pose):
-        yaw = rotation_y(self.scene['yaw'] - 90 - pose['slew'])
+        yaw = rotation_y(self.scene['yaw'] - 90 + self.scene.get('rest_slew_offset', 0.) - pose['slew'])
         matrix = yaw @ rotation_z(pose['luff'])
         hinge = np.array([pose['travel'], self.scene['y'] +
                           self.geometry['root_scale'] * self.geometry['hinge_height'], self.scene['z']])
@@ -126,7 +129,7 @@ class ReclaimPilot:
             return False
         matrix, hinge, center = self.frame(pose)
         # The wheel remains vertical under luffing; rotation does not change its body cylinder.
-        yaw = math.radians(self.scene['yaw'] - 90 - pose['slew'])
+        yaw = math.radians(self.scene['yaw'] - 90 + self.scene.get('rest_slew_offset', 0.) - pose['slew'])
         c, s = math.cos(yaw), math.sin(yaw)
         q = (self.x[indices]-center[0])*c - (self.z[indices]-center[2])*s
         axial = (self.x[indices]-center[0])*s + (self.z[indices]-center[2])*c
@@ -259,12 +262,15 @@ class ReclaimPilot:
 
 
 class PreviewWorld(World):
-    def __init__(self, config, **kwargs):
+    def __init__(self, config, pilot_root_scale=None, **kwargs):
         super().__init__(config=config, **kwargs)
-        self.pilot = ReclaimPilot(self.machines['RC01'].config['scene'])
+        self.pilot = ReclaimPilot(self.machines['RC01'].config['scene'], pilot_root_scale)
         self.auto = AutoReclaim(self.pilot)
 
     def _apply(self, machine, kind, payload):
+        if self.config['version'] == 'yard-real-scale-preview-v1' and kind in (
+                'plan_auto_reclaim', 'start_auto_reclaim'):
+            raise MotionError('NOT_CALIBRATED', '55m 场景自动取料路径尚未标定', 409)
         if kind in ('pause_auto_reclaim', 'cancel_auto_reclaim', 'take_manual_control'):
             if machine.config['machine_id'] != 'RC01' or payload:
                 raise MotionError('INVALID_COMMAND', '自动试验仅支持 RC01 且参数应为空', 422)

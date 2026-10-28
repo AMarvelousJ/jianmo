@@ -41,14 +41,15 @@ class Machine:
 
 
 class World:
-    def __init__(self, config=None, clock=time.monotonic, material_config=None, snapshot_path=None):
+    def __init__(self, config=None, clock=time.monotonic, material_config=None, snapshot_path=None,
+                 geometry_config=None):
         self.config = config or json.loads((Path(__file__).resolve().parents[1] / "config/machines.json").read_text(encoding="utf-8"))
         self._validate_config()
         self.clock = clock
         self.lock = threading.RLock()
         self.machines = {c["machine_id"]: Machine(c) for c in self.config["machines"]}
         self.material = MaterialDomain(material_config)
-        self.geometry = GeometryCalibration()
+        self.geometry = GeometryCalibration(geometry_config)
         self.geometry.validate_against_machines(self.config["machines"])
         self.jobs = MaterialJobs(self.material, self.geometry)
         self.instance = str(uuid.uuid4())
