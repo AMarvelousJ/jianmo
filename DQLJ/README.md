@@ -4,7 +4,7 @@
 
 ## 启动
 
-在本目录安装 `uv pip install --python ../.venv/Scripts/python.exe -e ".[test]"`，然后执行：
+首次克隆后请先按[仓库根目录启动说明](../README.md)创建虚拟环境并安装依赖。以下原场景命令在本目录执行：
 
 ```powershell
 .\scripts\start_backend.ps1

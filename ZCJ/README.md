@@ -18,43 +18,13 @@
 
 ## 快速开始
 
-要求 Python 3.10 或更高版本。以下 Windows PowerShell 命令从
-`D:\3D\Python\jianmo\ZCJ` 执行，使用工作区现有的共享虚拟环境；首次安装依赖时运行：
+首次克隆后请先按[仓库根目录启动说明](../README.md)创建虚拟环境并安装依赖。以下命令在 `ZCJ` 目录执行：
 
 ```powershell
-& ..\.venv\Scripts\python.exe -m pip install -e .
+..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-启动本机 `8000` 端口的后端（脚本会在后台启动并写入 `..\logs\`）：
-
-```powershell
-.\scripts\start_unity_backend.ps1
-```
-
-如果需要在当前终端查看服务日志，可改为前台启动：
-
-```powershell
-& ..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
-
-两种启动方式只选一种。启动后检查健康状态和仿真快照：
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:8000/health
-Invoke-RestMethod http://127.0.0.1:8000/api/state
-```
-
-浏览器打开：
-
-```text
-http://127.0.0.1:8000/
-```
-
-若 `8000` 端口已经被占用，先确认当前服务的 `/health` 和 `/api/state`
-确实属于本项目，再决定是否需要重启。不要同时启动第二个实例。
-在 Windows 上请使用上述虚拟环境的 `python.exe`，避免裸 `python`
-解析到 WindowsApps 占位程序。运行测试可执行
-`& ..\.venv\Scripts\python.exe -m pytest -q`。
+浏览器可访问 `http://127.0.0.1:8000/`；健康检查为 `/health`，状态接口为 `/api/state`。端口被占用时请先确认已有服务，不要启动第二个实例。详细安装、Unity 连接与堆取料机启动方式见[仓库根目录说明](../README.md)。
 
 右侧“一键装船”使用默认演示倍率：
 
